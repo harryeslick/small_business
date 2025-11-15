@@ -2,7 +2,7 @@
 
 from .account import Account, ChartOfAccounts
 from .client import Client
-from .config import Settings
+from .config import BankFormat, BankFormats, Settings
 from .enums import AccountType, InvoiceStatus, JobStatus, QuoteStatus
 from .invoice import Invoice
 from .job import Job
@@ -19,6 +19,8 @@ __all__ = [
 	"AccountType",
 	# Models
 	"Settings",
+	"BankFormat",
+	"BankFormats",
 	"Client",
 	"LineItem",
 	"Quote",

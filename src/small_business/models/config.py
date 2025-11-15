@@ -27,3 +27,29 @@ class Settings(BaseModel):
 
 	# File paths
 	data_directory: str = "data"
+
+
+class BankFormat(BaseModel):
+	"""Configuration for a specific bank's CSV format."""
+
+	name: str = Field(min_length=1)
+	date_column: str = Field(min_length=1)
+	description_column: str = Field(min_length=1)
+	debit_column: str | None = None
+	credit_column: str | None = None
+	amount_column: str | None = None  # For single amount column (positive/negative)
+	balance_column: str | None = None
+	date_format: str = "%Y-%m-%d"
+
+
+class BankFormats(BaseModel):
+	"""Collection of bank format configurations."""
+
+	formats: list[BankFormat] = Field(default_factory=list)
+
+	def get_format(self, name: str) -> BankFormat:
+		"""Get bank format by name."""
+		for fmt in self.formats:
+			if fmt.name == name:
+				return fmt
+		raise KeyError(f"Bank format not found: {name}")
