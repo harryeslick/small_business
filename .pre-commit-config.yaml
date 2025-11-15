@@ -1,0 +1,101 @@
+# Exclude dev.py and docs from pre-commit checks
+exclude: '^dev\.py$|^docs/.*\.py$'
+
+# Configuration for pre-commit.ci service
+ci:
+    autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
+    autoupdate_commit_msg: ⬆ [pre-commit.ci] pre-commit autoupdate
+
+repos:
+  # Standard pre-commit hooks for general file quality checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+    # Remove trailing whitespace from lines
+    - id: trailing-whitespace
+    # Ensure files end with a single newline
+    - id: end-of-file-fixer
+    # Validate TOML syntax
+    - id: check-toml
+    # Prevent committing files larger than 1MB
+    - id: check-added-large-files
+      args: ['--maxkb=1024']
+    # Verify Python files have valid syntax
+    - id: check-ast
+    # Prevent accidental use of dict()/list()/tuple() instead of {}/[]/()
+    - id: check-builtin-literals
+    # Ensure docstrings appear before code in modules/classes/functions
+    - id: check-docstring-first
+    # Detect merge conflict markers
+    - id: check-merge-conflict
+    # Detect case conflicts in filenames (important for case-insensitive filesystems)
+    - id: check-case-conflict
+    # Detect broken symlinks
+    - id: check-symlinks
+    # Validate YAML syntax
+    - id: check-yaml
+    # Detect debug statements (pdb, ipdb, breakpoint)
+    - id: debug-statements
+    # Normalize line endings to LF
+    - id: mixed-line-ending
+
+  # Ruff: Fast Python linter and formatter (replaces flake8, black, etc.)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      # Run ruff linter with auto-fixes (including unsafe fixes)
+      - id: ruff
+        args: ["--fix", "--unsafe-fixes"]
+      # Run ruff formatter (replaces black)
+      - id: ruff-format
+
+  # isort: Sort and organize Python imports
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  # pyupgrade: Automatically upgrade Python syntax to newer versions
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.31.0
+    hooks:
+      - id: pyupgrade
+        # Upgrade syntax to Python 3.7+ features
+        args: [--py37-plus]
+
+  # codespell: Check for common misspellings in code and documentation
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        # Automatically write corrections
+        args: ['-w']
+
+  # pygrep-hooks: Collection of fast Python-specific checks
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.9.0
+    hooks:
+      # Prevent blanket "# noqa" without specific error codes
+      - id: python-check-blanket-noqa
+      # Prevent blanket "# type: ignore" without specific error codes
+      - id: python-check-blanket-type-ignore
+      # Prevent deprecated logging.warn (use logging.warning instead)
+      - id: python-no-log-warn
+      # Prevent use of eval()
+      - id: python-no-eval
+      # Enforce use of type annotations over type comments
+      - id: python-use-type-annotations
+      # Check RST code blocks use correct backtick syntax
+      - id: rst-backticks
+      # Check RST directives end with double colon
+      - id: rst-directive-colons
+      # Check RST inline code doesn't touch normal text
+      - id: rst-inline-touching-normal
+
+  # check-manifest: Verify MANIFEST.in includes all necessary files for distribution
+  - repo: https://github.com/mgedmin/check-manifest
+    rev: "0.47"
+    hooks:
+      - id: check-manifest
+        # Only run when explicitly invoked (not on every commit)
+        stages: [manual]
