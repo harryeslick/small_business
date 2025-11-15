@@ -30,7 +30,9 @@ def convert_to_transaction(
 		# For zero-amount transactions, create a minimal entry
 		# This handles things like "Opening Balance" with no amount change
 		entries = [
-			JournalEntry(account_code=bank_account_code, debit=Decimal("0.01"), credit=Decimal("0")),
+			JournalEntry(
+				account_code=bank_account_code, debit=Decimal("0.01"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="MEMO", debit=Decimal("0"), credit=Decimal("0.01")),
 		]
 	elif bank_txn.is_debit:

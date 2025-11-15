@@ -1,4 +1,3 @@
-
 # %%  [markdown]
 # # Example of small_business
 # This page is generated from an jupytext notebook `.py` file using  `%%` format.
@@ -11,5 +10,4 @@
 
 
 # %% #|> 										 |
-from small_business import hello_world
 

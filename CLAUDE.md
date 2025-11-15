@@ -72,14 +72,18 @@ mkdocs gh-deploy
 ### Project Layout
 ```
 src/small_business/     # Main package source code
+  models/               # Phase 1: Pydantic models (Client, Quote, Job, Invoice, Account, Transaction)
 docs/                   # MkDocs documentation
   notebooks/            # Jupyter notebooks for examples (executed in docs)
   api_docs/            # API reference documentation
-tests/                  # pytest test suite (not yet created)
+  plans/               # Design documents for each phase
+tests/                  # pytest test suite
+  models/              # Tests for Pydantic models
 ```
 
 ### Key Technologies
 - **uv**: Package and dependency management (replaces pip/poetry)
+- **Pydantic**: Data validation and modeling (Phase 1 foundation)
 - **pytest**: Testing framework with code coverage
 - **MkDocs Material**: Documentation with mkdocs-jupyter for executable notebooks
 - **pre-commit**: Code quality enforcement with ruff and codespell
@@ -89,7 +93,19 @@ MkDocs is configured to execute Jupyter notebooks during build (via mkdocs-jupyt
 
 ## Development Notes
 
+### General
 - Use absolute imports (configured in pytest with `pythonpath = ["src"]`)
 - Version is managed in `src/small_business/__init__.py` via hatchling
 - Pre-commit excludes `dev.py` and `docs/*.py` files from checks
 - Tests should have short docstrings describing what is being tested
+
+### Phase 1: Data Models (Current)
+The project uses Pydantic models for all core entities. Key design patterns:
+
+- **Decimal for money**: All monetary values use `Decimal` for precision
+- **String IDs for relationships**: Simple string IDs (not nested objects) for serialization
+- **Computed fields**: Automatic calculations for totals, GST, financial year using `@computed_field`
+- **Model validators**: Data integrity validation (e.g., balanced transactions, account hierarchy)
+- **Double-entry accounting**: Transaction model enforces debits = credits
+
+See `docs/plans/2025-11-15-phase1-datastructures-design.md` for complete architecture details.

@@ -65,13 +65,11 @@ def import_bank_statement(
 			for txn in existing_txns:
 				# Reconstruct approximate bank transaction from accounting transaction
 				# This is simplified - just need for duplicate detection
-				# Calculate net amount: sum of all debits minus sum of all credits
-				total_debit = sum(e.debit for e in txn.entries)
-				total_credit = sum(e.credit for e in txn.entries)
-
 				# Determine if it's a debit or credit by checking which account is the bank account
 				# Bank account debit = money in, Bank account credit = money out
-				bank_entry = next((e for e in txn.entries if e.account_code == bank_account_code), None)
+				bank_entry = next(
+					(e for e in txn.entries if e.account_code == bank_account_code), None
+				)
 
 				if bank_entry:
 					if bank_entry.debit > 0:

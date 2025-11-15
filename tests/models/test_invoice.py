@@ -80,9 +80,7 @@ def test_invoice_auto_generates_id():
 		client_id="C-20251115-001",
 		date_issued=date(2025, 11, 15),
 		date_due=date(2025, 12, 15),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert invoice.invoice_id.startswith("INV-")
 
@@ -93,8 +91,6 @@ def test_invoice_financial_year():
 		client_id="C-20251115-001",
 		date_issued=date(2025, 6, 30),
 		date_due=date(2025, 7, 30),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert invoice.financial_year == "2024-25"

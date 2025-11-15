@@ -65,9 +65,7 @@ def test_client_email_validation():
 
 def test_client_serialization():
 	"""Test client model serializes to dict correctly."""
-	client = Client(
-		client_id="C-20251115-006", name="Test Client", email="test@example.com"
-	)
+	client = Client(client_id="C-20251115-006", name="Test Client", email="test@example.com")
 	data = client.model_dump()
 	assert data["client_id"] == "C-20251115-006"
 	assert data["name"] == "Test Client"

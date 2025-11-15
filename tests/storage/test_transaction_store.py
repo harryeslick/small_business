@@ -2,7 +2,6 @@
 
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 
 from small_business.models.transaction import JournalEntry, Transaction
 from small_business.storage.transaction_store import (

@@ -18,9 +18,7 @@ def test_quote_with_single_line_item():
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
 		line_items=[
-			LineItem(
-				description="Consulting", quantity=Decimal("1"), unit_price=Decimal("110.00")
-			)
+			LineItem(description="Consulting", quantity=Decimal("1"), unit_price=Decimal("110.00"))
 		],
 	)
 	assert quote.subtotal == Decimal("110.00")
@@ -37,12 +35,8 @@ def test_quote_with_multiple_line_items():
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
 		line_items=[
-			LineItem(
-				description="Item 1", quantity=Decimal("1"), unit_price=Decimal("110.00")
-			),
-			LineItem(
-				description="Item 2", quantity=Decimal("2"), unit_price=Decimal("55.00")
-			),
+			LineItem(description="Item 1", quantity=Decimal("1"), unit_price=Decimal("110.00")),
+			LineItem(description="Item 2", quantity=Decimal("2"), unit_price=Decimal("55.00")),
 		],
 	)
 	# Subtotal = 110 + 110 = 220
@@ -71,9 +65,7 @@ def test_quote_auto_generates_id():
 		client_id="C-20251115-001",
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert quote.quote_id.startswith("Q-")
 
@@ -85,8 +77,6 @@ def test_quote_financial_year_before_july():
 		client_id="C-20251115-001",
 		date_created=date(2025, 6, 30),
 		date_valid_until=date(2025, 7, 30),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert quote.financial_year == "2024-25"

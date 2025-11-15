@@ -58,9 +58,7 @@ def parse_csv(
 		else:
 			# Separate debit/credit columns
 			debit_str = str(row[bank_format.debit_column]) if bank_format.debit_column else ""
-			credit_str = (
-				str(row[bank_format.credit_column]) if bank_format.credit_column else ""
-			)
+			credit_str = str(row[bank_format.credit_column]) if bank_format.credit_column else ""
 
 			debit = Decimal("0") if debit_str in ("", "nan") else Decimal(debit_str)
 			credit = Decimal("0") if credit_str in ("", "nan") else Decimal(credit_str)

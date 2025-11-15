@@ -1,4 +1,3 @@
-
 """small bussiness acount and job management"""
 
 from __future__ import annotations

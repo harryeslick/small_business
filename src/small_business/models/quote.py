@@ -49,6 +49,4 @@ class Quote(BaseModel):
 	@property
 	def total(self) -> Decimal:
 		"""Total quote amount."""
-		return sum((item.total for item in self.line_items), Decimal("0")).quantize(
-			Decimal("0.01")
-		)
+		return sum((item.total for item in self.line_items), Decimal("0")).quantize(Decimal("0.01"))
