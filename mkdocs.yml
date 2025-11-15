@@ -57,6 +57,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Changelog: CHANGELOG.md
+  - Usage:
+    - Bank Import: usage/bank-import.md
   # - Report Issues: https://github.com/small_business/issues
   - API Reference:
         - Hello module: api_docs/hello_world.md
