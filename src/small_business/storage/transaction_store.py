@@ -67,3 +67,37 @@ def transaction_exists(txn_id: str, data_dir: Path, txn_date: date) -> bool:
 	"""
 	transactions = load_transactions(data_dir, txn_date)
 	return any(txn.transaction_id == txn_id for txn in transactions)
+
+
+def update_transaction(txn: Transaction, data_dir: Path) -> None:
+	"""Update an existing transaction in JSONL file.
+
+	Rewrites the entire JSONL file with the updated transaction.
+
+	Args:
+		txn: Transaction with updates
+		data_dir: Base data directory
+	"""
+	# Load all transactions
+	transactions = load_transactions(data_dir, txn.date)
+
+	# Find and replace the transaction
+	found = False
+	for i, existing_txn in enumerate(transactions):
+		if existing_txn.transaction_id == txn.transaction_id:
+			transactions[i] = txn
+			found = True
+			break
+
+	if not found:
+		msg = f"Transaction {txn.transaction_id} not found for update"
+		raise ValueError(msg)
+
+	# Rewrite the JSONL file
+	fy_dir = get_financial_year_dir(data_dir, txn.date)
+	txn_file = fy_dir / "transactions.jsonl"
+
+	with open(txn_file, "w") as f:
+		for t in transactions:
+			json_str = t.model_dump_json()
+			f.write(json_str + "\n")

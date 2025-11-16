@@ -6,6 +6,7 @@ from .learner import learn_rule
 from .matcher import find_best_match, match_pattern
 from .models import ClassificationRule, RuleMatch
 from .rule_store import load_rules, save_rules
+from .storage_integration import classify_and_save, load_and_classify_unclassified
 from .workflow import (
 	AcceptanceDecision,
 	ClassificationResult,
@@ -28,4 +29,6 @@ __all__ = [
 	"ClassificationResult",
 	"classify_and_review",
 	"process_unclassified_transactions",
+	"classify_and_save",
+	"load_and_classify_unclassified",
 ]
