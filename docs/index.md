@@ -1,23 +1,51 @@
 # Welcome to small_business
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+Small business account and job management system built with Python 3.13+.
 
-## Commands
+## Features
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+### Phase 1: Data Models ✅
+Core Pydantic models for accounting, invoicing, and job management:
+- Client, Quote, Job, Invoice with line items
+- Double-entry accounting with automatic validation
+- GST calculations and financial year utilities
 
-## Project layout
+### Phase 2: Bank Imports ✅
+Import and store bank transactions:
+- CSV import with configurable column mapping
+- JSONL storage organized by financial year
+- Transaction deduplication by ID
 
+### Phase 3: Expense Classification ✅
+Automated transaction categorization:
+- Regex pattern-based classification rules
+- Priority-based conflict resolution
+- Auto-learning from user classifications
+- YAML rule storage with JSONL integration
+
+## Getting Started
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/small_business.git
+cd small_business
+
+# Setup environment
+uv sync
+
+# Install pre-commit hooks
+pre-commit install-hooks
 ```
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        # Other markdown pages, images and other files.
-        api_docs/
-            hello_world.md   # API docs are stored here
-        notebooks/
-            example.py  # ipynb notebooks are stored here for examples. 
-```
+
+### Usage Guides
+
+- **[Bank Import](usage/bank-import.md)**: Import bank transactions from CSV
+- **[Expense Classification](usage/expense-classification.md)**: Automated transaction categorization
+
+## Documentation
+
+- **Usage Guides**: Step-by-step instructions for common tasks
+- **API Reference**: Detailed API documentation (auto-generated)
+- **Design Plans**: Implementation plans for each development phase
