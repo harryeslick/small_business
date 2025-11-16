@@ -1,5 +1,6 @@
 """Transaction classification system."""
 
+from .applicator import apply_classification
 from .classifier import classify_batch, classify_transaction
 from .matcher import find_best_match, match_pattern
 from .models import ClassificationRule, RuleMatch
@@ -14,4 +15,5 @@ __all__ = [
 	"find_best_match",
 	"classify_transaction",
 	"classify_batch",
+	"apply_classification",
 ]

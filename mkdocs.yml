@@ -1,5 +1,5 @@
 site_name: small_business
-site_description: small bussiness acount and job management
+site_description: small business account and job management
 site_author: Harry Eslick
 # repo_url: https://github.com/small_business
 # site_url: https://gh-pages.dtosf5dosh8hw.amplifyapp.com
@@ -59,16 +59,13 @@ nav:
   - Changelog: CHANGELOG.md
   - Usage:
     - Bank Import: usage/bank-import.md
-  # - Report Issues: https://github.com/small_business/issues
-  - API Reference:
-        - Hello module: api_docs/hello_world.md
-
+  - Report Issues: https://github.com/small_business/issues
   - Examples:
     - Notebooks:
         - 1. Notebook example: notebooks/example.py
 
-extra_javascript:
-  - https://cdn.plot.ly/plotly-2.32.0.min.js
+# extra_javascript:
+  # - https://cdn.plot.ly/plotly-2.32.0.min.js
 
 extra_css:
   - style.css
