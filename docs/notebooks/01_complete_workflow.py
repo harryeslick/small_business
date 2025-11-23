@@ -1,0 +1,437 @@
+# %% [markdown]
+# # Complete Workflow: Arts Business Example
+#
+# This notebook demonstrates the complete business workflow using the `small_business` package,
+# following a realistic arts business scenario.
+#
+# **Business**: Earthworks Studio - a ceramics studio offering classes and selling finished pieces
+#
+# **Workflow**:
+# 1. Initial setup (business settings, chart of accounts)
+# 2. Client management
+# 3. Creating and sending quotes
+# 4. Job tracking and management
+# 5. Invoicing and payment recording
+#
+# This example shows both service-based (pottery classes, commissions) and product-based
+# (selling finished pieces) transactions, demonstrating GST-inclusive and GST-exclusive pricing.
+
+# %% [markdown]
+# ## Setup and Imports
+
+# %%
+from datetime import date, timedelta
+from decimal import Decimal
+from pathlib import Path
+import tempfile
+import shutil
+
+# Import models
+from small_business.models import (
+    Settings,
+    Client,
+    Quote,
+    QuoteStatus,
+    Job,
+    JobStatus,
+    Invoice,
+    InvoiceStatus,
+    LineItem,
+    Account,
+    AccountType,
+    ChartOfAccounts,
+)
+
+# Import storage functions
+from small_business.storage import (
+    save_settings,
+    load_settings,
+    save_client,
+    load_client,
+    load_clients,
+    # list_clients,
+    save_quote,
+    load_quote,
+    save_invoice,
+    load_invoice,
+)
+
+# Create a temporary data directory for this example
+data_dir = Path(tempfile.mkdtemp(prefix="earthworks_studio_"))
+print(f"📁 Data directory: {data_dir}")
+
+# %% [markdown]
+# ## 1. Initial Setup
+#
+# First, we'll configure the business settings including contact details, ABN, and file paths.
+
+# %%
+# Create business settings
+settings = Settings(
+    gst_rate=Decimal("0.10"),
+    financial_year_start_month=7,  # July (Australian financial year)
+    currency="AUD",
+    business_name="Earthworks Studio",
+    business_abn="51 824 753 556",
+    business_email="contact@earthworksstudio.com.au",
+    business_phone="(03) 9555 1234",
+    business_address="42 Clay Street, Fitzroy VIC 3065",
+    data_directory=str(data_dir),
+)
+
+# Save settings
+save_settings(settings, data_dir)
+print("✅ Business settings configured")
+print(f"   Business: {settings.business_name}")
+print(f"   ABN: {settings.business_abn}")
+print(f"   Financial Year: July-June")
+
+# %% [markdown]
+# ### Chart of Accounts
+#
+# Set up a basic chart of accounts for the arts business. We'll use a simple two-level
+# hierarchy: parent accounts and sub-accounts.
+
+# %%
+# Define chart of accounts
+accounts = [
+    # Assets
+    Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
+    Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
+    Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
+
+    # Liabilities
+    Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
+    Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
+    Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
+
+    # Equity
+    Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+
+    # Income
+    Account(code="INC", name="Income", account_type=AccountType.INCOME),
+    Account(code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"),
+    Account(code="INC-COMMISSIONS", name="Commission Work", account_type=AccountType.INCOME, parent_code="INC"),
+    Account(code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"),
+
+    # Expenses
+    Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
+    Account(code="EXP-MATERIALS", name="Materials & Supplies", account_type=AccountType.EXPENSE, parent_code="EXP"),
+    Account(code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"),
+    Account(code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"),
+    Account(code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"),
+]
+
+chart = ChartOfAccounts(accounts=accounts)
+print("✅ Chart of accounts created")
+print(f"   Total accounts: {len(chart.accounts)}")
+print(f"   Income accounts: {len([a for a in chart.accounts if a.account_type == AccountType.INCOME])}")
+print(f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}")
+
+# %% [markdown]
+# ## 2. Client Management
+#
+# Create a client record for a local art gallery that wants to commission custom pieces.
+
+# %%
+# Create client
+gallery_client = Client(
+    client_id="Gallery 27",  # Human-readable ID (business name)
+    name="Gallery 27",
+    email="curator@gallery27.com.au",
+    phone="(03) 9555 7777",
+    contact_person="Sarah Chen",
+    abn="72 456 789 012",
+    street_address="27 Brunswick Street",
+    suburb="Fitzroy",
+    state="VIC",
+    postcode="3065",
+    formatted_address="27 Brunswick Street, Fitzroy VIC 3065",
+    notes="Contemporary art gallery, regular client for exhibitions",
+)
+
+# Save client
+save_client(gallery_client, data_dir)
+print("✅ Client created")
+print(f"   Client ID: {gallery_client.client_id}")
+print(f"   Contact: {gallery_client.contact_person}")
+print(f"   Email: {gallery_client.email}")
+
+# %% [markdown]
+# ### Client Lookup
+#
+# Demonstrate case-insensitive client lookup (handles "gallery 27", "Gallery 27", "GALLERY 27").
+
+# %%
+# Load client (case-insensitive)
+loaded_client = load_client("gallery 27", data_dir)  # Note: lowercase
+print(f"✅ Client loaded (case-insensitive): {loaded_client.client_id}")
+
+# List all clients
+all_clients = load_clients(data_dir)
+print(f"📋 Total clients: {len(all_clients)}")
+for client in all_clients:
+    print(f"   - {client.client_id}: {client.email}")
+
+# %% [markdown]
+# ## 3. Creating a Quote
+#
+# Gallery 27 wants a custom ceramic installation for their next exhibition, plus some
+# handmade bowls for their gift shop. We'll create a quote with mixed line items.
+
+# %%
+# Create quote
+quote = Quote(
+    client_id=gallery_client.client_id,
+    date_created=date.today(),
+    date_valid_until=date.today() + timedelta(days=30),
+    status=QuoteStatus.DRAFT,
+    line_items=[
+        # Service: Custom commission work (GST-exclusive hourly rate)
+        LineItem(
+            description="Custom ceramic wall installation - design and creation (40 hours)",
+            quantity=Decimal("40.00"),
+            unit_price=Decimal("85.00"),  # $85/hour
+            gst_inclusive=False,
+        ),
+        LineItem(
+            description="Installation and mounting (8 hours)",
+            quantity=Decimal("8.00"),
+            unit_price=Decimal("95.00"),  # $95/hour for installation
+            gst_inclusive=False,
+        ),
+        # Product: Finished pieces (GST-inclusive retail)
+        LineItem(
+            description="Handmade ceramic bowls - set of 6 (glazed earthenware)",
+            quantity=Decimal("2.00"),  # 2 sets
+            unit_price=Decimal("330.00"),  # $330 per set (GST-inclusive)
+            gst_inclusive=True,
+        ),
+    ],
+    terms_and_conditions=(
+        "Payment terms: 50% deposit on acceptance, balance due on completion.\n"
+        "Custom work will be completed within 6 weeks of deposit.\n"
+        "Installation to be scheduled separately."
+    ),
+    notes="Exhibition opening: late February. Aim to complete by mid-Feb.",
+)
+
+# Save quote
+save_quote(quote, data_dir)
+print("✅ Quote created and saved")
+print(f"   Quote ID: {quote.quote_id}")
+print(f"   Client: {quote.client_id}")
+print(f"   Valid until: {quote.date_valid_until}")
+print(f"   Status: {quote.status.value}")
+
+# %% [markdown]
+# ### Quote Calculations
+#
+# The Quote model automatically calculates subtotals, GST, and totals from line items.
+# Let's examine the breakdown:
+
+# %%
+print("💰 Quote Breakdown:")
+print(f"   Subtotal: ${quote.subtotal:,.2f}")
+print(f"   GST: ${quote.gst_amount:,.2f}")
+print(f"   Total: ${quote.total:,.2f}")
+print(f"   Financial Year: {quote.financial_year}")
+
+print("\n📋 Line Items:")
+for i, item in enumerate(quote.line_items, 1):
+    print(f"\n   {i}. {item.description}")
+    print(f"      Qty: {item.quantity} × ${item.unit_price}")
+    print(f"      Subtotal: ${item.subtotal:,.2f}")
+    print(f"      GST ({('inclusive' if item.gst_inclusive else 'exclusive')}): ${item.gst_amount:,.2f}")
+    print(f"      Total: ${item.total:,.2f}")
+
+# %% [markdown]
+# ### Update Quote Status
+#
+# After client reviews and accepts the quote, we update the status.
+
+# %%
+# Update quote status to SENT
+quote.status = QuoteStatus.SENT
+save_quote(quote, data_dir)
+print(f"✅ Quote status updated to: {quote.status.value}")
+
+# Simulate client acceptance
+quote.status = QuoteStatus.ACCEPTED
+save_quote(quote, data_dir)
+print(f"✅ Quote accepted by client: {quote.status.value}")
+
+# %% [markdown]
+# ## 4. Job Tracking
+#
+# Once the quote is accepted, we create a job to track the work.
+
+# %%
+# Create job from accepted quote
+job = Job(
+    quote_id=quote.quote_id,
+    client_id=quote.client_id,
+    date_accepted=date.today(),
+    scheduled_date=date.today() + timedelta(days=7),  # Start in 1 week
+    status=JobStatus.SCHEDULED,
+    notes="Client prefers warm earth tones. Reference images sent via email.",
+)
+
+print("✅ Job created from quote")
+print(f"   Job ID: {job.job_id}")
+print(f"   Quote ID: {job.quote_id}")
+print(f"   Client: {job.client_id}")
+print(f"   Scheduled: {job.scheduled_date}")
+print(f"   Status: {job.status.value}")
+print(f"   Financial Year: {job.financial_year}")
+
+# %% [markdown]
+# ### Job Status Updates
+#
+# Track the job through its lifecycle.
+
+# %%
+# Start work
+job.status = JobStatus.IN_PROGRESS
+print(f"🔨 Job status: {job.status.value}")
+
+# Complete work
+job.status = JobStatus.COMPLETED
+print(f"✅ Job status: {job.status.value}")
+
+# %% [markdown]
+# ### Track Job Costs (Example)
+#
+# In a real scenario, you'd link transaction IDs for materials purchased for this job.
+# This helps calculate actual profitability.
+
+# %%
+# Example: tracking actual costs (transaction IDs would come from expense tracking)
+job.actual_costs = [
+    "TXN-20251123-001",  # Clay and glazes purchase
+    "TXN-20251123-002",  # Additional materials
+]
+job.notes += "\n\nMaterials cost tracked in transactions."
+print(f"📊 Job costs tracked: {len(job.actual_costs)} transactions linked")
+
+# %% [markdown]
+# ## 5. Invoicing
+#
+# After job completion, create an invoice. Line items typically match the quote.
+
+# %%
+# Create invoice from completed job
+invoice = Invoice(
+    job_id=job.job_id,
+    client_id=job.client_id,
+    date_issued=date.today(),
+    date_due=date.today() + timedelta(days=14),  # Net 14 days
+    status=InvoiceStatus.DRAFT,
+    line_items=quote.line_items,  # Copy line items from quote
+    notes="Thank you for your business! 50% deposit already received.",
+)
+
+# Save invoice
+save_invoice(invoice, data_dir)
+print("✅ Invoice created and saved")
+print(f"   Invoice ID: {invoice.invoice_id}")
+print(f"   Job ID: {invoice.job_id}")
+print(f"   Client: {invoice.client_id}")
+print(f"   Due date: {invoice.date_due}")
+print(f"   Status: {invoice.status.value}")
+
+# %% [markdown]
+# ### Invoice Calculations
+
+# %%
+print("💰 Invoice Breakdown:")
+print(f"   Subtotal: ${invoice.subtotal:,.2f}")
+print(f"   GST: ${invoice.gst_amount:,.2f}")
+print(f"   Total: ${invoice.total:,.2f}")
+print(f"   Financial Year: {invoice.financial_year}")
+
+# %% [markdown]
+# ### Send Invoice and Record Payment
+
+# %%
+# Send invoice to client
+invoice.status = InvoiceStatus.SENT
+save_invoice(invoice, data_dir)
+print(f"📧 Invoice sent to client: {invoice.status.value}")
+
+# Record payment
+invoice.payment_date = date.today() + timedelta(days=7)
+invoice.payment_amount = invoice.total
+invoice.payment_reference = "Bank transfer - Ref: GAL27-INV"
+invoice.status = InvoiceStatus.PAID
+save_invoice(invoice, data_dir)
+
+print(f"✅ Payment recorded")
+print(f"   Amount: ${invoice.payment_amount:,.2f}")
+print(f"   Date: {invoice.payment_date}")
+print(f"   Reference: {invoice.payment_reference}")
+print(f"   Status: {invoice.status.value}")
+
+# Update job status to invoiced
+job.status = JobStatus.INVOICED
+print(f"✅ Job status updated to: {job.status.value}")
+
+# %% [markdown]
+# ## 6. Workflow Summary
+#
+# Let's verify the complete workflow by reloading data from storage.
+
+# %%
+# Reload quote
+reloaded_quote = load_quote(quote.quote_id, data_dir)
+print(f"📄 Quote {reloaded_quote.quote_id}:")
+print(f"   Status: {reloaded_quote.status.value}")
+print(f"   Total: ${reloaded_quote.total:,.2f}")
+
+# Reload invoice
+reloaded_invoice = load_invoice(invoice.invoice_id, data_dir)
+print(f"\n📄 Invoice {reloaded_invoice.invoice_id}:")
+print(f"   Status: {reloaded_invoice.status.value}")
+print(f"   Total: ${reloaded_invoice.total:,.2f}")
+print(f"   Paid: ${reloaded_invoice.payment_amount:,.2f} on {reloaded_invoice.payment_date}")
+
+# Workflow summary
+print("\n✅ Complete Workflow Summary:")
+print(f"   1. Client created: {gallery_client.client_id}")
+print(f"   2. Quote created: {quote.quote_id} (${quote.total:,.2f})")
+print(f"   3. Quote accepted: {quote.status.value}")
+print(f"   4. Job created: {job.job_id}")
+print(f"   5. Job completed: {job.status.value}")
+print(f"   6. Invoice created: {invoice.invoice_id}")
+print(f"   7. Invoice paid: {invoice.status.value}")
+print(f"\n   Total revenue: ${invoice.total:,.2f}")
+print(f"   GST collected: ${invoice.gst_amount:,.2f}")
+
+# %% [markdown]
+# ## Key Insights
+#
+# **★ Insight ─────────────────────────────────────**
+#
+# 1. **Automatic Calculations**: Quote and Invoice models automatically calculate
+#    subtotals, GST, and totals from line items. This eliminates manual calculation
+#    errors and handles mixed GST-inclusive/exclusive items correctly.
+#
+# 2. **Human-Readable IDs**: Client IDs use business names ("Gallery 27") for
+#    easy identification, while Quote/Job/Invoice IDs use generated codes for
+#    audit trails and uniqueness guarantees.
+#
+# 3. **Type-Safe Workflow**: Pydantic models provide validation at every step,
+#    ensuring data integrity (e.g., balanced transactions, valid dates, positive
+#    quantities).
+#
+# **─────────────────────────────────────────────────**
+
+# %% [markdown]
+# ## Cleanup
+#
+# Remove the temporary data directory.
+
+# %%
+# Cleanup
+shutil.rmtree(data_dir)
+print(f"🗑️  Cleaned up temporary data directory")
