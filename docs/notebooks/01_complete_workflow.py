@@ -42,22 +42,15 @@ from small_business.models import (
 	ChartOfAccounts,
 )
 
-# Import storage functions
-from small_business.storage import (
-	save_settings,
-	save_client,
-	load_client,
-	load_clients,
-	# list_clients,
-	save_quote,
-	load_quote,
-	save_invoice,
-	load_invoice,
-)
+# Import storage
+from small_business.storage import StorageRegistry
 
 # Create a temporary data directory for this example
 data_dir = Path(tempfile.mkdtemp(prefix="earthworks_studio_"))
 print(f"📁 Data directory: {data_dir}")
+
+# Initialize storage registry (loads all data into memory)
+storage = StorageRegistry(data_dir)
 
 # %% [markdown]
 # ## 1. Initial Setup
@@ -79,7 +72,7 @@ settings = Settings(
 )
 
 # Save settings
-save_settings(settings, data_dir)
+storage.save_settings(settings)
 print("✅ Business settings configured")
 print(f"   Business: {settings.business_name}")
 print(f"   ABN: {settings.business_abn}")
@@ -170,7 +163,7 @@ gallery_client = Client(
 )
 
 # Save client
-save_client(gallery_client, data_dir)
+storage.save_client(gallery_client)
 print("✅ Client created")
 print(f"   Client ID: {gallery_client.client_id}")
 print(f"   Contact: {gallery_client.contact_person}")
@@ -183,11 +176,11 @@ print(f"   Email: {gallery_client.email}")
 
 # %%
 # Load client (case-insensitive)
-loaded_client = load_client("gallery 27", data_dir)  # Note: lowercase
+loaded_client = storage.get_client("gallery 27")  # Note: lowercase
 print(f"✅ Client loaded (case-insensitive): {loaded_client.client_id}")
 
 # List all clients
-all_clients = load_clients(data_dir)
+all_clients = storage.get_all_clients()
 print(f"📋 Total clients: {len(all_clients)}")
 for client in all_clients:
 	print(f"   - {client.client_id}: {client.email}")
@@ -236,7 +229,7 @@ quote = Quote(
 )
 
 # Save quote
-save_quote(quote, data_dir)
+storage.save_quote(quote)
 print("✅ Quote created and saved")
 print(f"   Quote ID: {quote.quote_id}")
 print(f"   Client: {quote.client_id}")
@@ -274,12 +267,12 @@ for i, item in enumerate(quote.line_items, 1):
 # %%
 # Update quote status to SENT
 quote.status = QuoteStatus.SENT
-save_quote(quote, data_dir)
+storage.save_quote(quote)
 print(f"✅ Quote status updated to: {quote.status.value}")
 
 # Simulate client acceptance
 quote.status = QuoteStatus.ACCEPTED
-save_quote(quote, data_dir)
+storage.save_quote(quote)
 print(f"✅ Quote accepted by client: {quote.status.value}")
 
 # %% [markdown]
@@ -353,7 +346,7 @@ invoice = Invoice(
 )
 
 # Save invoice
-save_invoice(invoice, data_dir)
+storage.save_invoice(invoice)
 print("✅ Invoice created and saved")
 print(f"   Invoice ID: {invoice.invoice_id}")
 print(f"   Job ID: {invoice.job_id}")
@@ -377,7 +370,7 @@ print(f"   Financial Year: {invoice.financial_year}")
 # %%
 # Send invoice to client
 invoice.status = InvoiceStatus.SENT
-save_invoice(invoice, data_dir)
+storage.save_invoice(invoice)
 print(f"📧 Invoice sent to client: {invoice.status.value}")
 
 # Record payment
@@ -385,7 +378,7 @@ invoice.payment_date = date.today() + timedelta(days=7)
 invoice.payment_amount = invoice.total
 invoice.payment_reference = "Bank transfer - Ref: GAL27-INV"
 invoice.status = InvoiceStatus.PAID
-save_invoice(invoice, data_dir)
+storage.save_invoice(invoice)
 
 print("✅ Payment recorded")
 print(f"   Amount: ${invoice.payment_amount:,.2f}")
@@ -404,13 +397,13 @@ print(f"✅ Job status updated to: {job.status.value}")
 
 # %%
 # Reload quote
-reloaded_quote = load_quote(quote.quote_id, data_dir)
+reloaded_quote = storage.get_quote(quote.quote_id, quote.date_created)
 print(f"📄 Quote {reloaded_quote.quote_id}:")
 print(f"   Status: {reloaded_quote.status.value}")
 print(f"   Total: ${reloaded_quote.total:,.2f}")
 
 # Reload invoice
-reloaded_invoice = load_invoice(invoice.invoice_id, data_dir)
+reloaded_invoice = storage.get_invoice(invoice.invoice_id, invoice.date_issued)
 print(f"\n📄 Invoice {reloaded_invoice.invoice_id}:")
 print(f"   Status: {reloaded_invoice.status.value}")
 print(f"   Total: ${reloaded_invoice.total:,.2f}")

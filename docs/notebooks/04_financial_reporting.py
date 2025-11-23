@@ -46,7 +46,7 @@ from small_business.reports import (
 )
 
 # Import storage
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 # Create temporary data directory
 data_dir = Path(tempfile.mkdtemp(prefix="creative_canvas_"))
@@ -55,6 +55,9 @@ reports_dir.mkdir()
 
 print("🎨 Creative Canvas Studio - Financial Reporting Demo")
 print(f"📁 Data directory: {data_dir}")
+
+# Initialize storage registry
+storage = StorageRegistry(data_dir)
 
 # %% [markdown]
 # ## Chart of Accounts
@@ -263,15 +266,15 @@ transactions = [
 ]
 
 for txn in transactions:
-	save_transaction(txn, data_dir)
+	storage.save_transaction(txn)
 
 print(f"✅ Saved {len(transactions)} transactions for November 2025")
 print("\nTransaction Summary:")
-print(f"   Income transactions: 4")
-print(f"   Expense transactions: 7")
-print(f"   Asset transactions: 1")
-print(f"   Liability transactions: 1")
-print(f"   Opening balance: 1")
+print("   Income transactions: 4")
+print("   Expense transactions: 7")
+print("   Asset transactions: 1")
+print("   Liability transactions: 1")
+print("   Opening balance: 1")
 
 # %% [markdown]
 # ## Profit & Loss Report

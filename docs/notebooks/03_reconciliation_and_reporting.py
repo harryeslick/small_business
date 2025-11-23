@@ -33,13 +33,14 @@ from small_business.models import (
 	JournalEntry,
 	get_financial_year,
 )
-from small_business.storage import (
-	save_transaction,
-)
+from small_business.storage import StorageRegistry
 
 # Create temporary data directory
 data_dir = Path(tempfile.mkdtemp(prefix="earthworks_reports_"))
 print(f"📁 Data directory: {data_dir}")
+
+# Initialize storage registry
+storage = StorageRegistry(data_dir)
 
 # %% [markdown]
 # ## 1. Setup Chart of Accounts
@@ -252,7 +253,7 @@ transactions = [
 
 # Save transactions
 for txn in transactions:
-	save_transaction(txn, data_dir)
+	storage.save_transaction(txn)
 
 print(f"✅ Created {len(transactions)} sample transactions")
 print("   Period: November 2025")

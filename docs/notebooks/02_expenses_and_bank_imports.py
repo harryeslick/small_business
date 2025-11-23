@@ -39,13 +39,14 @@ from small_business.classification import (
 	learn_from_classification,
 	list_unclassified_transactions,
 )
-from small_business.storage import (
-	save_transaction,
-)
+from small_business.storage import StorageRegistry
 
 # Create temporary data directory
 data_dir = Path(tempfile.mkdtemp(prefix="earthworks_expenses_"))
 print(f"📁 Data directory: {data_dir}")
+
+# Initialize storage registry
+storage = StorageRegistry(data_dir)
 
 # %% [markdown]
 # ## 1. Setup Chart of Accounts
@@ -212,7 +213,7 @@ else:
 
 # Save transactions to storage
 for txn in transactions:
-	save_transaction(txn, data_dir)
+	storage.save_transaction(txn)
 
 print(f"✅ Saved {len(transactions)} transactions to storage")
 
