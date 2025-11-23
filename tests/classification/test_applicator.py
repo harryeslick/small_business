@@ -14,7 +14,9 @@ def test_apply_classification_expense():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -49,7 +51,9 @@ def test_apply_classification_income():
 		description="PAYMENT RECEIVED",
 		entries=[
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("500.00"), credit=Decimal("0")),
-			JournalEntry(account_code="INC-UNCLASSIFIED", debit=Decimal("0"), credit=Decimal("500.00")),
+			JournalEntry(
+				account_code="INC-UNCLASSIFIED", debit=Decimal("0"), credit=Decimal("500.00")
+			),
 		],
 	)
 
@@ -81,7 +85,9 @@ def test_apply_classification_preserves_original():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)

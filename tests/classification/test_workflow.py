@@ -4,7 +4,6 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-import pytest
 
 from small_business.classification.models import ClassificationRule
 from small_business.classification.workflow import (
@@ -21,7 +20,9 @@ def test_classify_and_review_auto_accept():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -51,7 +52,9 @@ def test_classify_and_review_manual_accept():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -67,7 +70,10 @@ def test_classify_and_review_manual_accept():
 
 	# Manual acceptance (user confirmed)
 	result = classify_and_review(
-		txn, rules, auto_accept_threshold=1.1, user_accepted=True  # Higher than confidence
+		txn,
+		rules,
+		auto_accept_threshold=1.1,
+		user_accepted=True,  # Higher than confidence
 	)
 
 	assert result.decision == AcceptanceDecision.ACCEPTED
@@ -82,7 +88,9 @@ def test_classify_and_review_rejected():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -118,7 +126,9 @@ def test_classify_and_review_no_match():
 		date=date(2025, 11, 15),
 		description="UNKNOWN MERCHANT",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -146,7 +156,9 @@ def test_process_unclassified_transactions(tmp_path: Path):
 			date=date(2025, 11, 15),
 			description="WOOLWORTHS 1234",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 			],
 		),
@@ -155,7 +167,9 @@ def test_process_unclassified_transactions(tmp_path: Path):
 			date=date(2025, 11, 16),
 			description="COLES 5678",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("32.00")),
 			],
 		),

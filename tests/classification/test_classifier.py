@@ -14,7 +14,9 @@ def test_classify_transaction_match():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234 PERTH",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -40,7 +42,9 @@ def test_classify_transaction_no_match():
 		date=date(2025, 11, 15),
 		description="UNKNOWN MERCHANT",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -66,7 +70,9 @@ def test_classify_batch():
 			date=date(2025, 11, 15),
 			description="WOOLWORTHS 1234",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 			],
 		),
@@ -75,7 +81,9 @@ def test_classify_batch():
 			date=date(2025, 11, 16),
 			description="QANTAS FLIGHT",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("280.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("280.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("280.00")),
 			],
 		),
@@ -84,7 +92,9 @@ def test_classify_batch():
 			date=date(2025, 11, 17),
 			description="UNKNOWN MERCHANT",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("50.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("50.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("50.00")),
 			],
 		),

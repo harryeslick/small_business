@@ -8,7 +8,7 @@ from small_business.classification.applicator import apply_classification
 from small_business.classification.classifier import classify_transaction
 from small_business.classification.learner import learn_rule
 from small_business.classification.models import ClassificationRule, RuleMatch
-from small_business.classification.rule_store import load_rules, save_rules
+from small_business.classification.rule_store import save_rules
 from small_business.models.transaction import Transaction
 
 

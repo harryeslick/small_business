@@ -2,7 +2,6 @@
 
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 
@@ -166,9 +165,7 @@ def test_load_quotes_for_year(tmp_path):
 		client_id="Client A",
 		date_created=date(2025, 11, 16),
 		date_valid_until=date(2025, 12, 16),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 
 	quote_2024 = Quote(
@@ -176,9 +173,7 @@ def test_load_quotes_for_year(tmp_path):
 		client_id="Client B",
 		date_created=date(2024, 6, 1),
 		date_valid_until=date(2024, 7, 1),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 
 	save_quote(quote_2025, data_dir)
@@ -200,9 +195,7 @@ def test_load_quotes_returns_latest_versions(tmp_path):
 		client_id="Test Client",
 		date_created=date(2025, 11, 16),
 		date_valid_until=date(2025, 12, 16),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 		version=1,
 	)
 	save_quote(quote_v1, data_dir)
@@ -212,9 +205,7 @@ def test_load_quotes_returns_latest_versions(tmp_path):
 		client_id="Test Client",
 		date_created=date(2025, 11, 16),
 		date_valid_until=date(2025, 12, 16),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("200"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("200"))],
 		version=2,
 	)
 	save_quote(quote_v2, data_dir)

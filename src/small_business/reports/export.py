@@ -17,9 +17,13 @@ def export_profit_loss_csv(report: dict, output_file: Path) -> None:
 	# Income section
 	rows.append({"Category": "INCOME", "Account": "", "Amount": ""})
 	for code, data in report["income"].items():
-		rows.append({"Category": "Income", "Account": data["name"], "Amount": float(data["balance"])})
+		rows.append(
+			{"Category": "Income", "Account": data["name"], "Amount": float(data["balance"])}
+		)
 
-	rows.append({"Category": "", "Account": "Total Income", "Amount": float(report["total_income"])})
+	rows.append(
+		{"Category": "", "Account": "Total Income", "Amount": float(report["total_income"])}
+	)
 	rows.append({"Category": "", "Account": "", "Amount": ""})
 
 	# Expenses section
@@ -53,9 +57,13 @@ def export_balance_sheet_csv(report: dict, output_file: Path) -> None:
 	# Assets
 	rows.append({"Category": "ASSETS", "Account": "", "Amount": ""})
 	for code, data in report["assets"].items():
-		rows.append({"Category": "Asset", "Account": data["name"], "Amount": float(data["balance"])})
+		rows.append(
+			{"Category": "Asset", "Account": data["name"], "Amount": float(data["balance"])}
+		)
 
-	rows.append({"Category": "", "Account": "Total Assets", "Amount": float(report["total_assets"])})
+	rows.append(
+		{"Category": "", "Account": "Total Assets", "Amount": float(report["total_assets"])}
+	)
 	rows.append({"Category": "", "Account": "", "Amount": ""})
 
 	# Liabilities
@@ -66,16 +74,24 @@ def export_balance_sheet_csv(report: dict, output_file: Path) -> None:
 		)
 
 	rows.append(
-		{"Category": "", "Account": "Total Liabilities", "Amount": float(report["total_liabilities"])}
+		{
+			"Category": "",
+			"Account": "Total Liabilities",
+			"Amount": float(report["total_liabilities"]),
+		}
 	)
 	rows.append({"Category": "", "Account": "", "Amount": ""})
 
 	# Equity
 	rows.append({"Category": "EQUITY", "Account": "", "Amount": ""})
 	for code, data in report["equity"].items():
-		rows.append({"Category": "Equity", "Account": data["name"], "Amount": float(data["balance"])})
+		rows.append(
+			{"Category": "Equity", "Account": data["name"], "Amount": float(data["balance"])}
+		)
 
-	rows.append({"Category": "", "Account": "Total Equity", "Amount": float(report["total_equity"])})
+	rows.append(
+		{"Category": "", "Account": "Total Equity", "Amount": float(report["total_equity"])}
+	)
 
 	df = pd.DataFrame(rows)
 	df.to_csv(output_file, index=False)

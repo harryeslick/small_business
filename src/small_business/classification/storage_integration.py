@@ -47,7 +47,11 @@ def classify_and_save(
 	)
 
 	# Save classified transaction if accepted or manually classified
-	if result.classified_transaction and result.decision.value in ("accepted", "rejected", "manual"):
+	if result.classified_transaction and result.decision.value in (
+		"accepted",
+		"rejected",
+		"manual",
+	):
 		# Check if transaction already exists in storage
 		if transaction_exists(transaction.transaction_id, data_dir, transaction.date):
 			# Update existing transaction
@@ -83,7 +87,9 @@ def load_and_classify_unclassified(
 
 	# Filter for unclassified transactions
 	unclassified = [
-		txn for txn in all_txns if any("UNCLASSIFIED" in entry.account_code for entry in txn.entries)
+		txn
+		for txn in all_txns
+		if any("UNCLASSIFIED" in entry.account_code for entry in txn.entries)
 	]
 
 	# Classify the unclassified transactions

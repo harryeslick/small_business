@@ -4,7 +4,6 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-import pytest
 
 from small_business.classification import (
 	AcceptanceDecision,
@@ -30,7 +29,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 			date=date(2025, 11, 15),
 			description="WOOLWORTHS 1234 PERTH",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 			],
 		),
@@ -39,7 +40,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 			date=date(2025, 11, 16),
 			description="BUNNINGS WAREHOUSE PERTH",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("125.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("125.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("125.00")),
 			],
 		),
@@ -48,7 +51,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 			date=date(2025, 11, 17),
 			description="UNKNOWN MERCHANT XYZ",
 			entries=[
-				JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("50.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-UNCLASSIFIED", debit=Decimal("50.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("50.00")),
 			],
 		),
@@ -136,7 +141,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 		date=date(2025, 11, 18),
 		description="WOOLWORTHS 5678 FREMANTLE",  # Should match WOOLWORTHS rule
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("32.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("32.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("32.50")),
 		],
 	)
@@ -158,7 +165,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 
 	# Step 9: Verify final state
 	# Only unclassified transaction should be in results
-	final_results = load_and_classify_unclassified(data_dir, transactions[0].date, rules, rules_file)
+	final_results = load_and_classify_unclassified(
+		data_dir, transactions[0].date, rules, rules_file
+	)
 
 	# Only TXN-003 is unclassified, so should only have 1 result
 	assert len(final_results) == 1
@@ -170,9 +179,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	assert len(all_stored_txns) == 4  # All 4 transactions
 
 	classified_txns = [
-		t
-		for t in all_stored_txns
-		if not any("UNCLASSIFIED" in e.account_code for e in t.entries)
+		t for t in all_stored_txns if not any("UNCLASSIFIED" in e.account_code for e in t.entries)
 	]
 	assert len(classified_txns) == 3  # TXN-001, TXN-002, TXN-004
 

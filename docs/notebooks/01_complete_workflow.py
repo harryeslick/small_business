@@ -28,32 +28,31 @@ import shutil
 
 # Import models
 from small_business.models import (
-    Settings,
-    Client,
-    Quote,
-    QuoteStatus,
-    Job,
-    JobStatus,
-    Invoice,
-    InvoiceStatus,
-    LineItem,
-    Account,
-    AccountType,
-    ChartOfAccounts,
+	Settings,
+	Client,
+	Quote,
+	QuoteStatus,
+	Job,
+	JobStatus,
+	Invoice,
+	InvoiceStatus,
+	LineItem,
+	Account,
+	AccountType,
+	ChartOfAccounts,
 )
 
 # Import storage functions
 from small_business.storage import (
-    save_settings,
-    load_settings,
-    save_client,
-    load_client,
-    load_clients,
-    # list_clients,
-    save_quote,
-    load_quote,
-    save_invoice,
-    load_invoice,
+	save_settings,
+	save_client,
+	load_client,
+	load_clients,
+	# list_clients,
+	save_quote,
+	load_quote,
+	save_invoice,
+	load_invoice,
 )
 
 # Create a temporary data directory for this example
@@ -68,15 +67,15 @@ print(f"📁 Data directory: {data_dir}")
 # %%
 # Create business settings
 settings = Settings(
-    gst_rate=Decimal("0.10"),
-    financial_year_start_month=7,  # July (Australian financial year)
-    currency="AUD",
-    business_name="Earthworks Studio",
-    business_abn="51 824 753 556",
-    business_email="contact@earthworksstudio.com.au",
-    business_phone="(03) 9555 1234",
-    business_address="42 Clay Street, Fitzroy VIC 3065",
-    data_directory=str(data_dir),
+	gst_rate=Decimal("0.10"),
+	financial_year_start_month=7,  # July (Australian financial year)
+	currency="AUD",
+	business_name="Earthworks Studio",
+	business_abn="51 824 753 556",
+	business_email="contact@earthworksstudio.com.au",
+	business_phone="(03) 9555 1234",
+	business_address="42 Clay Street, Fitzroy VIC 3065",
+	data_directory=str(data_dir),
 )
 
 # Save settings
@@ -84,7 +83,7 @@ save_settings(settings, data_dir)
 print("✅ Business settings configured")
 print(f"   Business: {settings.business_name}")
 print(f"   ABN: {settings.business_abn}")
-print(f"   Financial Year: July-June")
+print("   Financial Year: July-June")
 
 # %% [markdown]
 # ### Chart of Accounts
@@ -95,38 +94,58 @@ print(f"   Financial Year: July-June")
 # %%
 # Define chart of accounts
 accounts = [
-    # Assets
-    Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
-    Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
-    Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
-
-    # Liabilities
-    Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
-    Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
-    Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
-
-    # Equity
-    Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
-
-    # Income
-    Account(code="INC", name="Income", account_type=AccountType.INCOME),
-    Account(code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"),
-    Account(code="INC-COMMISSIONS", name="Commission Work", account_type=AccountType.INCOME, parent_code="INC"),
-    Account(code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"),
-
-    # Expenses
-    Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
-    Account(code="EXP-MATERIALS", name="Materials & Supplies", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"),
+	# Assets
+	Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
+	Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
+	Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
+	# Liabilities
+	Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
+	Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
+	Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
+	# Equity
+	Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+	# Income
+	Account(code="INC", name="Income", account_type=AccountType.INCOME),
+	Account(
+		code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"
+	),
+	Account(
+		code="INC-COMMISSIONS",
+		name="Commission Work",
+		account_type=AccountType.INCOME,
+		parent_code="INC",
+	),
+	Account(
+		code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"
+	),
+	# Expenses
+	Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
+	Account(
+		code="EXP-MATERIALS",
+		name="Materials & Supplies",
+		account_type=AccountType.EXPENSE,
+		parent_code="EXP",
+	),
+	Account(
+		code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
 ]
 
 chart = ChartOfAccounts(accounts=accounts)
 print("✅ Chart of accounts created")
 print(f"   Total accounts: {len(chart.accounts)}")
-print(f"   Income accounts: {len([a for a in chart.accounts if a.account_type == AccountType.INCOME])}")
-print(f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}")
+print(
+	f"   Income accounts: {len([a for a in chart.accounts if a.account_type == AccountType.INCOME])}"
+)
+print(
+	f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}"
+)
 
 # %% [markdown]
 # ## 2. Client Management
@@ -136,18 +155,18 @@ print(f"   Expense accounts: {len([a for a in chart.accounts if a.account_type =
 # %%
 # Create client
 gallery_client = Client(
-    client_id="Gallery 27",  # Human-readable ID (business name)
-    name="Gallery 27",
-    email="curator@gallery27.com.au",
-    phone="(03) 9555 7777",
-    contact_person="Sarah Chen",
-    abn="72 456 789 012",
-    street_address="27 Brunswick Street",
-    suburb="Fitzroy",
-    state="VIC",
-    postcode="3065",
-    formatted_address="27 Brunswick Street, Fitzroy VIC 3065",
-    notes="Contemporary art gallery, regular client for exhibitions",
+	client_id="Gallery 27",  # Human-readable ID (business name)
+	name="Gallery 27",
+	email="curator@gallery27.com.au",
+	phone="(03) 9555 7777",
+	contact_person="Sarah Chen",
+	abn="72 456 789 012",
+	street_address="27 Brunswick Street",
+	suburb="Fitzroy",
+	state="VIC",
+	postcode="3065",
+	formatted_address="27 Brunswick Street, Fitzroy VIC 3065",
+	notes="Contemporary art gallery, regular client for exhibitions",
 )
 
 # Save client
@@ -171,7 +190,7 @@ print(f"✅ Client loaded (case-insensitive): {loaded_client.client_id}")
 all_clients = load_clients(data_dir)
 print(f"📋 Total clients: {len(all_clients)}")
 for client in all_clients:
-    print(f"   - {client.client_id}: {client.email}")
+	print(f"   - {client.client_id}: {client.email}")
 
 # %% [markdown]
 # ## 3. Creating a Quote
@@ -182,38 +201,38 @@ for client in all_clients:
 # %%
 # Create quote
 quote = Quote(
-    client_id=gallery_client.client_id,
-    date_created=date.today(),
-    date_valid_until=date.today() + timedelta(days=30),
-    status=QuoteStatus.DRAFT,
-    line_items=[
-        # Service: Custom commission work (GST-exclusive hourly rate)
-        LineItem(
-            description="Custom ceramic wall installation - design and creation (40 hours)",
-            quantity=Decimal("40.00"),
-            unit_price=Decimal("85.00"),  # $85/hour
-            gst_inclusive=False,
-        ),
-        LineItem(
-            description="Installation and mounting (8 hours)",
-            quantity=Decimal("8.00"),
-            unit_price=Decimal("95.00"),  # $95/hour for installation
-            gst_inclusive=False,
-        ),
-        # Product: Finished pieces (GST-inclusive retail)
-        LineItem(
-            description="Handmade ceramic bowls - set of 6 (glazed earthenware)",
-            quantity=Decimal("2.00"),  # 2 sets
-            unit_price=Decimal("330.00"),  # $330 per set (GST-inclusive)
-            gst_inclusive=True,
-        ),
-    ],
-    terms_and_conditions=(
-        "Payment terms: 50% deposit on acceptance, balance due on completion.\n"
-        "Custom work will be completed within 6 weeks of deposit.\n"
-        "Installation to be scheduled separately."
-    ),
-    notes="Exhibition opening: late February. Aim to complete by mid-Feb.",
+	client_id=gallery_client.client_id,
+	date_created=date.today(),
+	date_valid_until=date.today() + timedelta(days=30),
+	status=QuoteStatus.DRAFT,
+	line_items=[
+		# Service: Custom commission work (GST-exclusive hourly rate)
+		LineItem(
+			description="Custom ceramic wall installation - design and creation (40 hours)",
+			quantity=Decimal("40.00"),
+			unit_price=Decimal("85.00"),  # $85/hour
+			gst_inclusive=False,
+		),
+		LineItem(
+			description="Installation and mounting (8 hours)",
+			quantity=Decimal("8.00"),
+			unit_price=Decimal("95.00"),  # $95/hour for installation
+			gst_inclusive=False,
+		),
+		# Product: Finished pieces (GST-inclusive retail)
+		LineItem(
+			description="Handmade ceramic bowls - set of 6 (glazed earthenware)",
+			quantity=Decimal("2.00"),  # 2 sets
+			unit_price=Decimal("330.00"),  # $330 per set (GST-inclusive)
+			gst_inclusive=True,
+		),
+	],
+	terms_and_conditions=(
+		"Payment terms: 50% deposit on acceptance, balance due on completion.\n"
+		"Custom work will be completed within 6 weeks of deposit.\n"
+		"Installation to be scheduled separately."
+	),
+	notes="Exhibition opening: late February. Aim to complete by mid-Feb.",
 )
 
 # Save quote
@@ -239,11 +258,13 @@ print(f"   Financial Year: {quote.financial_year}")
 
 print("\n📋 Line Items:")
 for i, item in enumerate(quote.line_items, 1):
-    print(f"\n   {i}. {item.description}")
-    print(f"      Qty: {item.quantity} × ${item.unit_price}")
-    print(f"      Subtotal: ${item.subtotal:,.2f}")
-    print(f"      GST ({('inclusive' if item.gst_inclusive else 'exclusive')}): ${item.gst_amount:,.2f}")
-    print(f"      Total: ${item.total:,.2f}")
+	print(f"\n   {i}. {item.description}")
+	print(f"      Qty: {item.quantity} × ${item.unit_price}")
+	print(f"      Subtotal: ${item.subtotal:,.2f}")
+	print(
+		f"      GST ({('inclusive' if item.gst_inclusive else 'exclusive')}): ${item.gst_amount:,.2f}"
+	)
+	print(f"      Total: ${item.total:,.2f}")
 
 # %% [markdown]
 # ### Update Quote Status
@@ -269,12 +290,12 @@ print(f"✅ Quote accepted by client: {quote.status.value}")
 # %%
 # Create job from accepted quote
 job = Job(
-    quote_id=quote.quote_id,
-    client_id=quote.client_id,
-    date_accepted=date.today(),
-    scheduled_date=date.today() + timedelta(days=7),  # Start in 1 week
-    status=JobStatus.SCHEDULED,
-    notes="Client prefers warm earth tones. Reference images sent via email.",
+	quote_id=quote.quote_id,
+	client_id=quote.client_id,
+	date_accepted=date.today(),
+	scheduled_date=date.today() + timedelta(days=7),  # Start in 1 week
+	status=JobStatus.SCHEDULED,
+	notes="Client prefers warm earth tones. Reference images sent via email.",
 )
 
 print("✅ Job created from quote")
@@ -308,8 +329,8 @@ print(f"✅ Job status: {job.status.value}")
 # %%
 # Example: tracking actual costs (transaction IDs would come from expense tracking)
 job.actual_costs = [
-    "TXN-20251123-001",  # Clay and glazes purchase
-    "TXN-20251123-002",  # Additional materials
+	"TXN-20251123-001",  # Clay and glazes purchase
+	"TXN-20251123-002",  # Additional materials
 ]
 job.notes += "\n\nMaterials cost tracked in transactions."
 print(f"📊 Job costs tracked: {len(job.actual_costs)} transactions linked")
@@ -322,13 +343,13 @@ print(f"📊 Job costs tracked: {len(job.actual_costs)} transactions linked")
 # %%
 # Create invoice from completed job
 invoice = Invoice(
-    job_id=job.job_id,
-    client_id=job.client_id,
-    date_issued=date.today(),
-    date_due=date.today() + timedelta(days=14),  # Net 14 days
-    status=InvoiceStatus.DRAFT,
-    line_items=quote.line_items,  # Copy line items from quote
-    notes="Thank you for your business! 50% deposit already received.",
+	job_id=job.job_id,
+	client_id=job.client_id,
+	date_issued=date.today(),
+	date_due=date.today() + timedelta(days=14),  # Net 14 days
+	status=InvoiceStatus.DRAFT,
+	line_items=quote.line_items,  # Copy line items from quote
+	notes="Thank you for your business! 50% deposit already received.",
 )
 
 # Save invoice
@@ -366,7 +387,7 @@ invoice.payment_reference = "Bank transfer - Ref: GAL27-INV"
 invoice.status = InvoiceStatus.PAID
 save_invoice(invoice, data_dir)
 
-print(f"✅ Payment recorded")
+print("✅ Payment recorded")
 print(f"   Amount: ${invoice.payment_amount:,.2f}")
 print(f"   Date: {invoice.payment_date}")
 print(f"   Reference: {invoice.payment_reference}")
@@ -434,4 +455,4 @@ print(f"   GST collected: ${invoice.gst_amount:,.2f}")
 # %%
 # Cleanup
 shutil.rmtree(data_dir)
-print(f"🗑️  Cleaned up temporary data directory")
+print("🗑️  Cleaned up temporary data directory")

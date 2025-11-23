@@ -4,7 +4,6 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-import pytest
 
 from small_business.classification.models import ClassificationRule
 from small_business.classification.storage_integration import (
@@ -27,7 +26,9 @@ def test_classify_and_save(tmp_path: Path):
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -71,7 +72,9 @@ def test_load_and_classify_unclassified(tmp_path: Path):
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -81,7 +84,9 @@ def test_load_and_classify_unclassified(tmp_path: Path):
 		date=date(2025, 11, 16),
 		description="COLES 5678",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("32.00")),
 		],
 	)

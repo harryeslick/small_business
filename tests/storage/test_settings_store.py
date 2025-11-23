@@ -1,7 +1,5 @@
 """Test settings storage operations."""
 
-from pathlib import Path
-
 from small_business.models import Settings
 from small_business.storage.settings_store import load_settings, save_settings
 

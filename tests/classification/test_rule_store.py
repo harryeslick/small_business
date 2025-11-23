@@ -1,7 +1,5 @@
 """Test rule storage."""
 
-from pathlib import Path
-
 from small_business.classification.models import ClassificationRule
 from small_business.classification.rule_store import load_rules, save_rules
 

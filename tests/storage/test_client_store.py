@@ -1,7 +1,5 @@
 """Test client storage with case-insensitive lookups."""
 
-from pathlib import Path
-
 import pytest
 
 from small_business.models import Client

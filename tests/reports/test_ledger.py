@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from small_business.models import Account, AccountType, JournalEntry, Transaction
+from small_business.models import JournalEntry, Transaction
 from small_business.reports.ledger import calculate_account_balance, get_account_transactions
 from small_business.storage.transaction_store import save_transaction
 

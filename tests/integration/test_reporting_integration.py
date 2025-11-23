@@ -2,12 +2,15 @@
 
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.balance_sheet import generate_balance_sheet
 from small_business.reports.bas_gst import generate_bas_report
-from small_business.reports.export import export_balance_sheet_csv, export_bas_csv, export_profit_loss_csv
+from small_business.reports.export import (
+	export_balance_sheet_csv,
+	export_bas_csv,
+	export_profit_loss_csv,
+)
 from small_business.reports.profit_loss import generate_profit_loss_report
 from small_business.storage.transaction_store import save_transaction
 
@@ -36,7 +39,9 @@ def test_complete_reporting_workflow(tmp_path):
 			date=date(2025, 11, 1),
 			description="Opening balance",
 			entries=[
-				JournalEntry(account_code="BANK-CHQ", debit=Decimal("10000.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="BANK-CHQ", debit=Decimal("10000.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="EQUITY", debit=Decimal("0"), credit=Decimal("10000.00")),
 			],
 		),
@@ -46,8 +51,12 @@ def test_complete_reporting_workflow(tmp_path):
 			description="Sales invoice",
 			gst_inclusive=True,
 			entries=[
-				JournalEntry(account_code="BANK-CHQ", debit=Decimal("1100.00"), credit=Decimal("0")),
-				JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("1100.00")),
+				JournalEntry(
+					account_code="BANK-CHQ", debit=Decimal("1100.00"), credit=Decimal("0")
+				),
+				JournalEntry(
+					account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("1100.00")
+				),
 			],
 		),
 		# Rent expense with GST
@@ -66,7 +75,9 @@ def test_complete_reporting_workflow(tmp_path):
 			description="Office supplies",
 			gst_inclusive=True,
 			entries=[
-				JournalEntry(account_code="EXP-SUPPLIES", debit=Decimal("220.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="EXP-SUPPLIES", debit=Decimal("220.00"), credit=Decimal("0")
+				),
 				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("220.00")),
 			],
 		),

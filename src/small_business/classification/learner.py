@@ -66,8 +66,15 @@ def _extract_merchant_pattern(description: str) -> str:
 	merchant_words = []
 	# Common locations to stop at (not descriptors like WAREHOUSE which may be part of brand)
 	stop_words = {
-		"PERTH", "SYDNEY", "MELBOURNE", "BRISBANE", "ADELAIDE",
-		"STORE", "BRANCH", "PTY", "LTD",
+		"PERTH",
+		"SYDNEY",
+		"MELBOURNE",
+		"BRISBANE",
+		"ADELAIDE",
+		"STORE",
+		"BRANCH",
+		"PTY",
+		"LTD",
 	}
 
 	for word in words:

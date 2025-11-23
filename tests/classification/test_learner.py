@@ -13,7 +13,9 @@ def test_learn_rule_from_merchant():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234 PERTH",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)
@@ -39,7 +41,9 @@ def test_learn_rule_with_numbers():
 		date=date(2025, 11, 15),
 		description="COLES 5678 SUPERMARKET",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("32.00"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("32.00")),
 		],
 	)
@@ -61,7 +65,9 @@ def test_learn_rule_multiple_words():
 		date=date(2025, 11, 15),
 		description="BUNNINGS WAREHOUSE PERTH",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("125.00"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("125.00"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("125.00")),
 		],
 	)
@@ -83,7 +89,9 @@ def test_learn_rule_with_priority():
 		date=date(2025, 11, 15),
 		description="WOOLWORTHS 1234",
 		entries=[
-			JournalEntry(account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")),
+			JournalEntry(
+				account_code="EXP-UNCLASSIFIED", debit=Decimal("45.50"), credit=Decimal("0")
+			),
 			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("45.50")),
 		],
 	)

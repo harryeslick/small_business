@@ -2,7 +2,6 @@
 
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 
@@ -108,9 +107,7 @@ def test_load_invoices_for_year(tmp_path):
 		client_id="Client A",
 		date_issued=date(2025, 11, 16),
 		date_due=date(2025, 12, 16),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 
 	invoice_2024 = Invoice(
@@ -118,9 +115,7 @@ def test_load_invoices_for_year(tmp_path):
 		client_id="Client B",
 		date_issued=date(2024, 6, 1),
 		date_due=date(2024, 7, 1),
-		line_items=[
-			LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))
-		],
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 
 	save_invoice(invoice_2025, data_dir)

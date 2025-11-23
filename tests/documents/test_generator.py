@@ -2,13 +2,12 @@
 
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 
 import pytest
 
 from small_business.documents.generator import generate_invoice_document, generate_quote_document
 from small_business.models import Client, Invoice, LineItem, Quote, Settings
-from small_business.storage import load_client, save_client, save_settings
+from small_business.storage import save_client, save_settings
 
 
 def test_generate_quote_document_raises_when_client_not_found(tmp_path):

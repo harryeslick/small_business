@@ -16,39 +16,31 @@
 # ## Setup and Imports
 
 # %%
-from datetime import date
 from decimal import Decimal
 from pathlib import Path
 import tempfile
 import shutil
-import csv
-from io import StringIO
 
 # Import models
 from small_business.models import (
-    AccountType,
-    Account,
-    ChartOfAccounts,
+	AccountType,
+	Account,
+	ChartOfAccounts,
 )
 from small_business.bank import (
-    BankTransaction,
-    parse_bank_csv,
-    convert_to_transaction,
-    detect_duplicates,
-    import_bank_statement,
+	parse_bank_csv,
+	convert_to_transaction,
+	detect_duplicates,
 )
 from small_business.classification import (
-    ClassificationRule,
-    create_rule,
-    apply_rules,
-    classify_transaction,
-    learn_from_classification,
-    list_unclassified_transactions,
+	create_rule,
+	apply_rules,
+	classify_transaction,
+	learn_from_classification,
+	list_unclassified_transactions,
 )
 from small_business.storage import (
-    save_transaction,
-    load_transaction,
-    list_transactions,
+	save_transaction,
 )
 
 # Create temporary data directory
@@ -63,38 +55,63 @@ print(f"📁 Data directory: {data_dir}")
 # %%
 # Create chart of accounts (same as workflow example)
 accounts = [
-    # Assets
-    Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
-    Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
-    Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
-
-    # Liabilities
-    Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
-    Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
-    Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
-
-    # Equity
-    Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
-
-    # Income
-    Account(code="INC", name="Income", account_type=AccountType.INCOME),
-    Account(code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"),
-    Account(code="INC-COMMISSIONS", name="Commission Work", account_type=AccountType.INCOME, parent_code="INC"),
-    Account(code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"),
-
-    # Expenses
-    Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
-    Account(code="EXP-MATERIALS", name="Materials & Supplies", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-INSURANCE", name="Insurance", account_type=AccountType.EXPENSE, parent_code="EXP"),
-    Account(code="EXP-SOFTWARE", name="Software Subscriptions", account_type=AccountType.EXPENSE, parent_code="EXP"),
+	# Assets
+	Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
+	Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
+	Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
+	# Liabilities
+	Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
+	Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
+	Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
+	# Equity
+	Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+	# Income
+	Account(code="INC", name="Income", account_type=AccountType.INCOME),
+	Account(
+		code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"
+	),
+	Account(
+		code="INC-COMMISSIONS",
+		name="Commission Work",
+		account_type=AccountType.INCOME,
+		parent_code="INC",
+	),
+	Account(
+		code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"
+	),
+	# Expenses
+	Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
+	Account(
+		code="EXP-MATERIALS",
+		name="Materials & Supplies",
+		account_type=AccountType.EXPENSE,
+		parent_code="EXP",
+	),
+	Account(
+		code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-INSURANCE", name="Insurance", account_type=AccountType.EXPENSE, parent_code="EXP"
+	),
+	Account(
+		code="EXP-SOFTWARE",
+		name="Software Subscriptions",
+		account_type=AccountType.EXPENSE,
+		parent_code="EXP",
+	),
 ]
 
 chart = ChartOfAccounts(accounts=accounts)
 print("✅ Chart of accounts created")
-print(f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}")
+print(
+	f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}"
+)
 
 # %% [markdown]
 # ## 2. Sample Bank Statement
@@ -135,9 +152,9 @@ print(f"✅ Parsed {len(bank_transactions)} transactions from bank statement")
 # Display sample transactions
 print("\n📋 Sample Bank Transactions:")
 for txn in bank_transactions[:5]:
-    direction = "Credit" if txn.credit else "Debit"
-    amount = txn.credit if txn.credit else txn.debit
-    print(f"   {txn.date} | {direction:6} | ${amount:>8.2f} | {txn.description}")
+	direction = "Credit" if txn.credit else "Debit"
+	amount = txn.credit if txn.credit else txn.debit
+	print(f"   {txn.date} | {direction:6} | ${amount:>8.2f} | {txn.description}")
 
 # %% [markdown]
 # ## 4. Convert to Accounting Transactions
@@ -151,28 +168,28 @@ for txn in bank_transactions[:5]:
 
 transactions = []
 for bank_txn in bank_transactions:
-    if bank_txn.credit:
-        # Income: Debit BANK, Credit income account
-        # For this example, we'll classify all income as general income
-        txn = convert_to_transaction(
-            bank_txn,
-            debit_account="BANK",
-            credit_account="INC",
-            description=f"Income: {bank_txn.description}",
-        )
-    elif bank_txn.debit:
-        # Expense: Debit expense account, Credit BANK
-        # For now, use generic expense account (we'll classify later)
-        txn = convert_to_transaction(
-            bank_txn,
-            debit_account="EXP",
-            credit_account="BANK",
-            description=f"Expense: {bank_txn.description}",
-        )
-    else:
-        continue  # Skip opening balance
+	if bank_txn.credit:
+		# Income: Debit BANK, Credit income account
+		# For this example, we'll classify all income as general income
+		txn = convert_to_transaction(
+			bank_txn,
+			debit_account="BANK",
+			credit_account="INC",
+			description=f"Income: {bank_txn.description}",
+		)
+	elif bank_txn.debit:
+		# Expense: Debit expense account, Credit BANK
+		# For now, use generic expense account (we'll classify later)
+		txn = convert_to_transaction(
+			bank_txn,
+			debit_account="EXP",
+			credit_account="BANK",
+			description=f"Expense: {bank_txn.description}",
+		)
+	else:
+		continue  # Skip opening balance
 
-    transactions.append(txn)
+	transactions.append(txn)
 
 print(f"✅ Converted {len(transactions)} bank transactions to accounting transactions")
 
@@ -189,13 +206,13 @@ existing_txn_ids = []
 duplicates = detect_duplicates(transactions, existing_txn_ids)
 
 if duplicates:
-    print(f"⚠️  Found {len(duplicates)} duplicate transactions (skipped)")
+	print(f"⚠️  Found {len(duplicates)} duplicate transactions (skipped)")
 else:
-    print("✅ No duplicates found")
+	print("✅ No duplicates found")
 
 # Save transactions to storage
 for txn in transactions:
-    save_transaction(txn, data_dir)
+	save_transaction(txn, data_dir)
 
 print(f"✅ Saved {len(transactions)} transactions to storage")
 
@@ -207,60 +224,56 @@ print(f"✅ Saved {len(transactions)} transactions to storage")
 # %%
 # Create classification rules
 rules = [
-    # Materials and supplies
-    create_rule(
-        description_pattern="CLAY SUPPLIES",
-        account_code="EXP-MATERIALS",
-        rule_name="Clay supplier",
-    ),
-    create_rule(
-        description_pattern="POTTER'S WAREHOUSE",
-        account_code="EXP-MATERIALS",
-        rule_name="Pottery supplier",
-    ),
-    create_rule(
-        description_pattern="WALKER CERAMICS",
-        account_code="EXP-MATERIALS",
-        rule_name="Ceramics supplier",
-    ),
-
-    # Studio rent
-    create_rule(
-        description_pattern="STUDIO RENT",
-        account_code="EXP-STUDIO",
-        rule_name="Monthly rent",
-    ),
-
-    # Utilities
-    create_rule(
-        description_pattern="AGL ENERGY",
-        account_code="EXP-UTILITIES",
-        rule_name="Electricity",
-    ),
-
-    # Marketing
-    create_rule(
-        description_pattern="INSTAGRAM ADS",
-        account_code="EXP-MARKETING",
-        rule_name="Social media advertising",
-    ),
-    create_rule(
-        description_pattern="CANVA",
-        account_code="EXP-SOFTWARE",
-        rule_name="Design software",
-    ),
-
-    # Income classification
-    create_rule(
-        description_pattern="PAYPAL \\*GALLERY27",
-        account_code="INC-COMMISSIONS",
-        rule_name="Gallery commission payment",
-    ),
-    create_rule(
-        description_pattern="PAYPAL \\*PRIVATECLIENT",
-        account_code="INC-CLASSES",
-        rule_name="Private class payment",
-    ),
+	# Materials and supplies
+	create_rule(
+		description_pattern="CLAY SUPPLIES",
+		account_code="EXP-MATERIALS",
+		rule_name="Clay supplier",
+	),
+	create_rule(
+		description_pattern="POTTER'S WAREHOUSE",
+		account_code="EXP-MATERIALS",
+		rule_name="Pottery supplier",
+	),
+	create_rule(
+		description_pattern="WALKER CERAMICS",
+		account_code="EXP-MATERIALS",
+		rule_name="Ceramics supplier",
+	),
+	# Studio rent
+	create_rule(
+		description_pattern="STUDIO RENT",
+		account_code="EXP-STUDIO",
+		rule_name="Monthly rent",
+	),
+	# Utilities
+	create_rule(
+		description_pattern="AGL ENERGY",
+		account_code="EXP-UTILITIES",
+		rule_name="Electricity",
+	),
+	# Marketing
+	create_rule(
+		description_pattern="INSTAGRAM ADS",
+		account_code="EXP-MARKETING",
+		rule_name="Social media advertising",
+	),
+	create_rule(
+		description_pattern="CANVA",
+		account_code="EXP-SOFTWARE",
+		rule_name="Design software",
+	),
+	# Income classification
+	create_rule(
+		description_pattern="PAYPAL \\*GALLERY27",
+		account_code="INC-COMMISSIONS",
+		rule_name="Gallery commission payment",
+	),
+	create_rule(
+		description_pattern="PAYPAL \\*PRIVATECLIENT",
+		account_code="INC-CLASSES",
+		rule_name="Private class payment",
+	),
 ]
 
 print(f"✅ Created {len(rules)} classification rules")
@@ -268,7 +281,7 @@ print(f"✅ Created {len(rules)} classification rules")
 # Display rules
 print("\n📋 Classification Rules:")
 for rule in rules:
-    print(f"   '{rule.description_pattern}' → {rule.account_code} ({rule.rule_name})")
+	print(f"   '{rule.description_pattern}' → {rule.account_code} ({rule.rule_name})")
 
 # %% [markdown]
 # ## 7. Apply Classification Rules
@@ -279,10 +292,10 @@ for rule in rules:
 # Apply rules to all transactions
 classified_count = 0
 for txn in transactions:
-    matched_rule = apply_rules(txn, rules, chart)
-    if matched_rule:
-        classified_count += 1
-        print(f"✅ Classified: {txn.description[:50]} → {matched_rule.account_code}")
+	matched_rule = apply_rules(txn, rules, chart)
+	if matched_rule:
+		classified_count += 1
+		print(f"✅ Classified: {txn.description[:50]} → {matched_rule.account_code}")
 
 print(f"\n✅ Classified {classified_count}/{len(transactions)} transactions")
 
@@ -298,26 +311,26 @@ print(f"📋 Unclassified transactions: {len(unclassified)}")
 
 # Manually classify one transaction
 if unclassified:
-    example_txn = unclassified[0]
-    print(f"\n📝 Manually classifying: {example_txn.description}")
+	example_txn = unclassified[0]
+	print(f"\n📝 Manually classifying: {example_txn.description}")
 
-    # Classify as general materials expense (Bunnings purchase)
-    classified_txn = classify_transaction(
-        example_txn,
-        account_code="EXP-MATERIALS",
-        chart=chart,
-    )
+	# Classify as general materials expense (Bunnings purchase)
+	classified_txn = classify_transaction(
+		example_txn,
+		account_code="EXP-MATERIALS",
+		chart=chart,
+	)
 
-    print(f"✅ Classified to: EXP-MATERIALS")
+	print("✅ Classified to: EXP-MATERIALS")
 
-    # Learn from this classification to create a new rule
-    new_rule = learn_from_classification(
-        example_txn,
-        "EXP-MATERIALS",
-        rule_name="Hardware store - materials",
-    )
-    rules.append(new_rule)
-    print(f"✅ Created new rule: '{new_rule.description_pattern}' → {new_rule.account_code}")
+	# Learn from this classification to create a new rule
+	new_rule = learn_from_classification(
+		example_txn,
+		"EXP-MATERIALS",
+		rule_name="Hardware store - materials",
+	)
+	rules.append(new_rule)
+	print(f"✅ Created new rule: '{new_rule.description_pattern}' → {new_rule.account_code}")
 
 # %% [markdown]
 # ## 9. Link Expenses to Jobs
@@ -331,19 +344,19 @@ job_expenses = []
 
 # Find material expense transactions
 for txn in transactions:
-    # Check if transaction is a materials expense
-    for entry in txn.entries:
-        if entry.account_code == "EXP-MATERIALS" and entry.debit > 0:
-            job_expenses.append(txn.transaction_id)
-            print(f"💼 Linked to job {job_id}: {txn.description} (${entry.debit:.2f})")
+	# Check if transaction is a materials expense
+	for entry in txn.entries:
+		if entry.account_code == "EXP-MATERIALS" and entry.debit > 0:
+			job_expenses.append(txn.transaction_id)
+			print(f"💼 Linked to job {job_id}: {txn.description} (${entry.debit:.2f})")
 
 # Calculate total job costs
 total_job_costs = sum(
-    entry.debit
-    for txn in transactions
-    if txn.transaction_id in job_expenses
-    for entry in txn.entries
-    if entry.account_code == "EXP-MATERIALS"
+	entry.debit
+	for txn in transactions
+	if txn.transaction_id in job_expenses
+	for entry in txn.entries
+	if entry.account_code == "EXP-MATERIALS"
 )
 
 print(f"\n💰 Total job costs: ${total_job_costs:,.2f}")
@@ -359,28 +372,28 @@ expense_summary = {}
 income_summary = {}
 
 for txn in transactions:
-    for entry in txn.entries:
-        account = chart.get_account(entry.account_code)
+	for entry in txn.entries:
+		account = chart.get_account(entry.account_code)
 
-        if account.account_type == AccountType.EXPENSE and entry.debit > 0:
-            if entry.account_code not in expense_summary:
-                expense_summary[entry.account_code] = {
-                    "name": account.name,
-                    "total": Decimal(0),
-                    "count": 0,
-                }
-            expense_summary[entry.account_code]["total"] += entry.debit
-            expense_summary[entry.account_code]["count"] += 1
+		if account.account_type == AccountType.EXPENSE and entry.debit > 0:
+			if entry.account_code not in expense_summary:
+				expense_summary[entry.account_code] = {
+					"name": account.name,
+					"total": Decimal(0),
+					"count": 0,
+				}
+			expense_summary[entry.account_code]["total"] += entry.debit
+			expense_summary[entry.account_code]["count"] += 1
 
-        elif account.account_type == AccountType.INCOME and entry.credit > 0:
-            if entry.account_code not in income_summary:
-                income_summary[entry.account_code] = {
-                    "name": account.name,
-                    "total": Decimal(0),
-                    "count": 0,
-                }
-            income_summary[entry.account_code]["total"] += entry.credit
-            income_summary[entry.account_code]["count"] += 1
+		elif account.account_type == AccountType.INCOME and entry.credit > 0:
+			if entry.account_code not in income_summary:
+				income_summary[entry.account_code] = {
+					"name": account.name,
+					"total": Decimal(0),
+					"count": 0,
+				}
+			income_summary[entry.account_code]["total"] += entry.credit
+			income_summary[entry.account_code]["count"] += 1
 
 # Display expense summary
 print("💸 Expense Summary:")
@@ -388,8 +401,8 @@ print(f"{'Account':<20} {'Category':<30} {'Count':>6} {'Total':>12}")
 print("-" * 70)
 total_expenses = Decimal(0)
 for code, data in sorted(expense_summary.items()):
-    print(f"{code:<20} {data['name']:<30} {data['count']:>6} ${data['total']:>10,.2f}")
-    total_expenses += data["total"]
+	print(f"{code:<20} {data['name']:<30} {data['count']:>6} ${data['total']:>10,.2f}")
+	total_expenses += data["total"]
 print("-" * 70)
 print(f"{'TOTAL EXPENSES':<51} ${total_expenses:>10,.2f}")
 
@@ -399,8 +412,8 @@ print(f"{'Account':<20} {'Category':<30} {'Count':>6} {'Total':>12}")
 print("-" * 70)
 total_income = Decimal(0)
 for code, data in sorted(income_summary.items()):
-    print(f"{code:<20} {data['name']:<30} {data['count']:>6} ${data['total']:>10,.2f}")
-    total_income += data["total"]
+	print(f"{code:<20} {data['name']:<30} {data['count']:>6} ${data['total']:>10,.2f}")
+	total_income += data["total"]
 print("-" * 70)
 print(f"{'TOTAL INCOME':<51} ${total_income:>10,.2f}")
 
@@ -421,12 +434,12 @@ print(f"{'Transaction':<50} {'Amount':>12} {'GST':>12}")
 print("-" * 75)
 
 for txn in transactions:
-    if txn.gst_inclusive:
-        # Calculate GST component (1/11 of total for GST-inclusive)
-        amount = txn.amount
-        gst_amount = (amount / Decimal("11")).quantize(Decimal("0.01"))
-        total_gst_paid += gst_amount
-        print(f"{txn.description[:48]:<50} ${amount:>10,.2f} ${gst_amount:>10,.2f}")
+	if txn.gst_inclusive:
+		# Calculate GST component (1/11 of total for GST-inclusive)
+		amount = txn.amount
+		gst_amount = (amount / Decimal("11")).quantize(Decimal("0.01"))
+		total_gst_paid += gst_amount
+		print(f"{txn.description[:48]:<50} ${amount:>10,.2f} ${gst_amount:>10,.2f}")
 
 print("-" * 75)
 print(f"{'TOTAL GST PAID':<50} ${total_gst_paid:>10,.2f}")
@@ -442,11 +455,11 @@ final_unclassified = list_unclassified_transactions(transactions)
 
 print(f"⚠️  Unclassified Transactions: {len(final_unclassified)}")
 if final_unclassified:
-    print("\n📋 Transactions needing classification:")
-    for txn in final_unclassified:
-        print(f"   {txn.date} | {txn.description[:50]:<50} | ${txn.amount:>10,.2f}")
+	print("\n📋 Transactions needing classification:")
+	for txn in final_unclassified:
+		print(f"   {txn.date} | {txn.description[:50]:<50} | ${txn.amount:>10,.2f}")
 else:
-    print("✅ All transactions classified!")
+	print("✅ All transactions classified!")
 
 # %% [markdown]
 # ## Key Insights

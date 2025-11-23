@@ -10,7 +10,9 @@ class ClassificationRule(BaseModel):
 	account_code: str = Field(min_length=1, description="Account code to assign")
 	description: str = Field(min_length=1, description="Human-readable description of rule")
 	gst_inclusive: bool = Field(description="Whether transactions are GST inclusive")
-	priority: int = Field(default=0, ge=0, description="Priority for conflicting rules (higher = higher priority)")
+	priority: int = Field(
+		default=0, ge=0, description="Priority for conflicting rules (higher = higher priority)"
+	)
 
 
 class RuleMatch(BaseModel):
