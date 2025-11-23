@@ -3,7 +3,6 @@
 from datetime import date
 
 from small_business.models.utils import (
-	generate_client_id,
 	generate_invoice_id,
 	generate_job_id,
 	generate_quote_id,
@@ -60,13 +59,6 @@ def test_generate_transaction_id_format():
 	transaction_id = generate_transaction_id()
 	assert transaction_id.startswith("TXN-")
 	assert len(transaction_id) >= 16
-
-
-def test_generate_client_id_format():
-	"""Test client ID has correct format C-YYYYMMDD-NNN."""
-	client_id = generate_client_id()
-	assert client_id.startswith("C-")
-	assert len(client_id) >= 14
 
 
 def test_generated_ids_are_unique():

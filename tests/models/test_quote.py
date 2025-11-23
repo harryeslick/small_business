@@ -14,7 +14,7 @@ def test_quote_with_single_line_item():
 	"""Test creating a quote with one line item."""
 	quote = Quote(
 		quote_id="Q-20251115-001",
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
 		line_items=[
@@ -31,7 +31,7 @@ def test_quote_with_multiple_line_items():
 	"""Test quote with multiple line items."""
 	quote = Quote(
 		quote_id="Q-20251115-002",
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
 		line_items=[
@@ -51,7 +51,7 @@ def test_quote_must_have_line_items():
 	with pytest.raises(ValidationError) as exc_info:
 		Quote(
 			quote_id="Q-20251115-003",
-			client_id="C-20251115-001",
+			client_id="Test Client",
 			date_created=date(2025, 11, 15),
 			date_valid_until=date(2025, 12, 15),
 			line_items=[],
@@ -62,7 +62,7 @@ def test_quote_must_have_line_items():
 def test_quote_auto_generates_id():
 	"""Test quote ID auto-generation."""
 	quote = Quote(
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_created=date(2025, 11, 15),
 		date_valid_until=date(2025, 12, 15),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
@@ -74,7 +74,7 @@ def test_quote_financial_year_before_july():
 	"""Test financial year calculation for date before July."""
 	quote = Quote(
 		quote_id="Q-20250630-001",
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_created=date(2025, 6, 30),
 		date_valid_until=date(2025, 7, 30),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
