@@ -23,5 +23,6 @@
     "python.analysis.inlayHints.functionReturnTypes": true,
     "python.analysis.extraPaths": [
         "${workspaceFolder}/src"
-    ]
+    ],
+    
 }

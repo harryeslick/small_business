@@ -273,8 +273,8 @@ Template Variables:
 **external modification handling**
 - all records and files are stored as plain text, user may wish to make manual  changes which could have unintended errors.
 - system should maintain a internal backup system using git.
-- all changes made during a session should be written out to the plain text record database, then commited to the git tracking system.
-- This is tracked for emergecy use only, any other git functionality will be done manually, eg roll back to previous commit is not required as a function in this package. 
+- all changes made during a session should be written out to the plain text record database, then committed to the git tracking system.
+- This is tracked for emergency use only, any other git functionality will be done manually, eg roll back to previous commit is not required as a function in this package. 
 
 ### Income Tracking
 
