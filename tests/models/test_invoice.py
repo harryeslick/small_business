@@ -16,7 +16,7 @@ def test_invoice_with_job():
 	invoice = Invoice(
 		invoice_id="INV-20251115-001",
 		job_id="J-20251115-001",
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_issued=date(2025, 11, 15),
 		date_due=date(2025, 12, 15),
 		line_items=[
@@ -34,7 +34,7 @@ def test_invoice_with_job():
 def test_invoice_without_job():
 	"""Test creating an invoice without a job."""
 	invoice = Invoice(
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_issued=date(2025, 11, 15),
 		date_due=date(2025, 12, 15),
 		line_items=[
@@ -47,7 +47,7 @@ def test_invoice_without_job():
 def test_invoice_with_payment():
 	"""Test invoice with payment tracking."""
 	invoice = Invoice(
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_issued=date(2025, 11, 15),
 		date_due=date(2025, 12, 15),
 		payment_date=date(2025, 11, 20),
@@ -66,7 +66,7 @@ def test_invoice_must_have_line_items():
 	"""Test that invoice requires at least one line item."""
 	with pytest.raises(ValidationError) as exc_info:
 		Invoice(
-			client_id="C-20251115-001",
+			client_id="Test Client",
 			date_issued=date(2025, 11, 15),
 			date_due=date(2025, 12, 15),
 			line_items=[],
@@ -77,7 +77,7 @@ def test_invoice_must_have_line_items():
 def test_invoice_auto_generates_id():
 	"""Test invoice ID auto-generation."""
 	invoice = Invoice(
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_issued=date(2025, 11, 15),
 		date_due=date(2025, 12, 15),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
@@ -88,7 +88,7 @@ def test_invoice_auto_generates_id():
 def test_invoice_financial_year():
 	"""Test invoice financial year calculation."""
 	invoice = Invoice(
-		client_id="C-20251115-001",
+		client_id="Test Client",
 		date_issued=date(2025, 6, 30),
 		date_due=date(2025, 7, 30),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
