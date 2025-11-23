@@ -72,15 +72,3 @@ def generate_transaction_id() -> str:
 	date_str = today.strftime("%Y%m%d")
 	unique_suffix = str(uuid.uuid4())[:3].upper()
 	return f"TXN-{date_str}-{unique_suffix}"
-
-
-def generate_client_id() -> str:
-	"""Generate client ID: C-YYYYMMDD-NNN.
-
-	Returns:
-		Client ID string
-	"""
-	today = date.today()
-	date_str = today.strftime("%Y%m%d")
-	unique_suffix = str(uuid.uuid4())[:3].upper()
-	return f"C-{date_str}-{unique_suffix}"

@@ -28,6 +28,10 @@ class Settings(BaseModel):
 	# File paths
 	data_directory: str = "data"
 
+	# Template paths
+	quote_template_path: str = "templates/quote_template.docx"
+	invoice_template_path: str = "templates/invoice_template.docx"
+
 
 class BankFormat(BaseModel):
 	"""Configuration for a specific bank's CSV format."""
