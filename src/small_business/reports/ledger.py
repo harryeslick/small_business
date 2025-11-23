@@ -4,8 +4,8 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import Transaction
-from small_business.storage.transaction_store import load_transactions
+from small_business.models import Transaction, get_financial_year
+from small_business.storage import StorageRegistry
 
 
 def calculate_account_balance(
@@ -24,7 +24,9 @@ def calculate_account_balance(
 		Account balance (debits - credits for asset/expense accounts,
 		                  credits - debits for liability/income/equity accounts)
 	"""
-	transactions = load_transactions(data_dir, as_of_date)
+	storage = StorageRegistry(data_dir)
+	fy = get_financial_year(as_of_date)
+	transactions = storage.get_all_transactions(financial_year=fy)
 
 	total_debits = Decimal("0")
 	total_credits = Decimal("0")
@@ -60,7 +62,9 @@ def get_account_transactions(
 	Returns:
 		List of transactions affecting the account
 	"""
-	all_transactions = load_transactions(data_dir, as_of_date)
+	storage = StorageRegistry(data_dir)
+	fy = get_financial_year(as_of_date)
+	all_transactions = storage.get_all_transactions(financial_year=fy)
 
 	# Filter transactions that have entries for this account
 	account_transactions = []

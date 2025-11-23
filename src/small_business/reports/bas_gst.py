@@ -4,7 +4,8 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.storage.transaction_store import load_transactions
+from small_business.models import get_financial_year
+from small_business.storage import StorageRegistry
 
 
 def calculate_gst_component(amount: Decimal, gst_inclusive: bool) -> Decimal:
@@ -40,7 +41,9 @@ def generate_bas_report(
 	Returns:
 		Dictionary with GST collected, paid, and net amount
 	"""
-	transactions = load_transactions(data_dir, end_date)
+	storage = StorageRegistry(data_dir)
+	fy = get_financial_year(end_date)
+	transactions = storage.get_all_transactions(financial_year=fy)
 	transactions = [t for t in transactions if start_date <= t.date <= end_date]
 
 	total_sales = Decimal("0")

@@ -5,8 +5,9 @@ from datetime import date
 from pathlib import Path
 
 from small_business.bank.import_workflow import import_bank_statement
+from small_business.models import get_financial_year
 from small_business.models.config import BankFormat
-from small_business.storage.transaction_store import load_transactions
+from small_business.storage import StorageRegistry
 
 
 def test_import_bank_statement_full_workflow(tmp_path):
@@ -48,7 +49,9 @@ def test_import_bank_statement_full_workflow(tmp_path):
 		assert result["duplicates"] == 0
 
 		# Verify transactions were saved
-		transactions = load_transactions(data_dir, date(2025, 11, 15))
+		storage = StorageRegistry(data_dir)
+		fy = get_financial_year(date(2025, 11, 15))
+		transactions = storage.get_all_transactions(financial_year=fy)
 		assert len(transactions) == 3
 
 		# Check first transaction (opening balance)
@@ -114,7 +117,9 @@ def test_import_duplicate_detection(tmp_path):
 		assert result2["duplicates"] == 1
 
 		# Should still only have 1 transaction
-		transactions = load_transactions(data_dir, date(2025, 11, 10))
+		storage = StorageRegistry(data_dir)
+		fy = get_financial_year(date(2025, 11, 10))
+		transactions = storage.get_all_transactions(financial_year=fy)
 		assert len(transactions) == 1
 
 	finally:

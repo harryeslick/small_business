@@ -13,8 +13,9 @@ from small_business.classification import (
 	load_rules,
 	save_rules,
 )
+from small_business.models import get_financial_year
 from small_business.models.transaction import JournalEntry, Transaction
-from small_business.storage import load_transactions, save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_e2e_classification_workflow(tmp_path: Path):
@@ -60,8 +61,9 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	]
 
 	# Save to storage (simulating bank import)
+	storage = StorageRegistry(data_dir)
 	for txn in transactions:
-		save_transaction(txn, data_dir)
+		storage.save_transaction(txn)
 
 	# Step 2: First classification run with no rules
 	rules = load_rules(rules_file)  # Empty initially
@@ -94,7 +96,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	assert len(rules) == 1
 
 	# Verify TXN-001 was updated in storage and is no longer unclassified
-	stored_txns = load_transactions(data_dir, txn1.date)
+	stored_txns = StorageRegistry(data_dir).get_all_transactions(financial_year=get_financial_year(txn1.date))
 	stored_txn1 = next(t for t in stored_txns if t.transaction_id == "TXN-001")
 	assert stored_txn1.entries[0].account_code == "EXP-GRO"
 
@@ -123,7 +125,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	assert len(rules) == 2
 
 	# Verify both transactions updated in storage
-	stored_txns = load_transactions(data_dir, txn1.date)
+	stored_txns = StorageRegistry(data_dir).get_all_transactions(financial_year=get_financial_year(txn1.date))
 	stored_txn2 = next(t for t in stored_txns if t.transaction_id == "TXN-002")
 	assert stored_txn2.entries[0].account_code == "EXP-SUP"
 
@@ -148,7 +150,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 		],
 	)
 
-	save_transaction(new_txn, data_dir)
+	StorageRegistry(data_dir).save_transaction(new_txn)
 
 	# Step 8: Auto-classification of new transaction
 	results = load_and_classify_unclassified(data_dir, transactions[0].date, rules, rules_file)
@@ -159,7 +161,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	assert results["TXN-004"].match.rule.account_code == "EXP-GRO"
 
 	# Verify auto-classification saved to storage
-	stored_txns = load_transactions(data_dir, new_txn.date)
+	stored_txns = StorageRegistry(data_dir).get_all_transactions(financial_year=get_financial_year(new_txn.date))
 	stored_new_txn = next(t for t in stored_txns if t.transaction_id == "TXN-004")
 	assert stored_new_txn.entries[0].account_code == "EXP-GRO"
 
@@ -175,7 +177,7 @@ def test_e2e_classification_workflow(tmp_path: Path):
 	assert final_results["TXN-003"].decision == AcceptanceDecision.PENDING
 
 	# Verify all other transactions are classified in storage
-	all_stored_txns = load_transactions(data_dir, transactions[0].date)
+	all_stored_txns = StorageRegistry(data_dir).get_all_transactions(financial_year=get_financial_year(transactions[0].date))
 	assert len(all_stored_txns) == 4  # All 4 transactions
 
 	classified_txns = [

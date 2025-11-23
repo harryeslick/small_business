@@ -12,7 +12,7 @@ from small_business.reports.export import (
 	export_profit_loss_csv,
 )
 from small_business.reports.profit_loss import generate_profit_loss_report
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_complete_reporting_workflow(tmp_path):
@@ -83,8 +83,9 @@ def test_complete_reporting_workflow(tmp_path):
 		),
 	]
 
+	storage = StorageRegistry(data_dir)
 	for txn in transactions:
-		save_transaction(txn, data_dir)
+		storage.save_transaction(txn)
 
 	# Generate P&L report
 	pl_report = generate_profit_loss_report(

@@ -5,8 +5,9 @@ from datetime import date
 from pathlib import Path
 
 from small_business.bank import import_bank_statement
+from small_business.models import get_financial_year
 from small_business.models.config import BankFormat
-from small_business.storage.transaction_store import load_transactions
+from small_business.storage import StorageRegistry
 
 
 def test_complete_bank_import_workflow(tmp_path):
@@ -49,7 +50,9 @@ def test_complete_bank_import_workflow(tmp_path):
 		assert result1["duplicates"] == 0
 
 		# Verify all transactions saved
-		transactions = load_transactions(data_dir, date(2025, 11, 15))
+		storage = StorageRegistry(data_dir)
+		fy = get_financial_year(date(2025, 11, 15))
+		transactions = storage.get_all_transactions(financial_year=fy)
 		assert len(transactions) == 4
 
 		# Verify double-entry structure
@@ -91,7 +94,9 @@ def test_complete_bank_import_workflow(tmp_path):
 		assert result2["duplicates"] == 2
 
 		# Verify total count
-		transactions = load_transactions(data_dir, date(2025, 11, 15))
+		storage = StorageRegistry(data_dir)
+		fy = get_financial_year(date(2025, 11, 15))
+		transactions = storage.get_all_transactions(financial_year=fy)
 		assert len(transactions) == 5
 
 	finally:
@@ -134,14 +139,15 @@ def test_cross_financial_year_import(tmp_path):
 		assert result["imported"] == 2
 
 		# Check transactions are in correct financial years
-		fy_2024_25 = load_transactions(data_dir, date(2025, 6, 30))
-		fy_2025_26 = load_transactions(data_dir, date(2025, 7, 1))
+		storage = StorageRegistry(data_dir)
+		fy_2024_25_txns = storage.get_all_transactions(financial_year="2024-25")
+		fy_2025_26_txns = storage.get_all_transactions(financial_year="2025-26")
 
-		assert len(fy_2024_25) == 1
-		assert len(fy_2025_26) == 1
+		assert len(fy_2024_25_txns) == 1
+		assert len(fy_2025_26_txns) == 1
 
-		assert fy_2024_25[0].financial_year == "2024-25"
-		assert fy_2025_26[0].financial_year == "2025-26"
+		assert fy_2024_25_txns[0].financial_year == "2024-25"
+		assert fy_2025_26_txns[0].financial_year == "2025-26"
 
 	finally:
 		csv_path.unlink()

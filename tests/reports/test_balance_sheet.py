@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.balance_sheet import generate_balance_sheet
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_generate_balance_sheet(tmp_path):
@@ -51,9 +51,10 @@ def test_generate_balance_sheet(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
-	save_transaction(txn3, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
+	storage.save_transaction(txn3)
 
 	# Generate balance sheet
 	report = generate_balance_sheet(

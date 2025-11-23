@@ -10,12 +10,7 @@ from small_business.classification.workflow import (
 	process_unclassified_transactions,
 )
 from small_business.models.transaction import Transaction
-from small_business.storage import (
-	load_transactions,
-	save_transaction,
-	transaction_exists,
-	update_transaction,
-)
+from small_business.storage import StorageRegistry
 
 
 def classify_and_save(
@@ -52,13 +47,16 @@ def classify_and_save(
 		"rejected",
 		"manual",
 	):
+		# Initialize storage
+		storage = StorageRegistry(data_dir)
+
 		# Check if transaction already exists in storage
-		if transaction_exists(transaction.transaction_id, data_dir, transaction.date):
+		if storage.transaction_exists(transaction.transaction_id, transaction.date):
 			# Update existing transaction
-			update_transaction(result.classified_transaction, data_dir)
+			storage.update_transaction(result.classified_transaction)
 		else:
 			# Save new transaction
-			save_transaction(result.classified_transaction, data_dir)
+			storage.save_transaction(result.classified_transaction)
 
 	return result
 
@@ -82,8 +80,14 @@ def load_and_classify_unclassified(
 	Returns:
 		Dictionary mapping transaction_id to ClassificationResult
 	"""
+	# Initialize storage
+	storage = StorageRegistry(data_dir)
+
 	# Load all transactions for the financial year
-	all_txns = load_transactions(data_dir, txn_date)
+	from small_business.models import get_financial_year
+
+	financial_year = get_financial_year(txn_date)
+	all_txns = storage.get_all_transactions(financial_year=financial_year)
 
 	# Filter for unclassified transactions
 	unclassified = [
@@ -100,6 +104,6 @@ def load_and_classify_unclassified(
 	# Save auto-accepted classifications back to storage
 	for txn_id, result in results.items():
 		if result.classified_transaction and result.decision.value == "accepted":
-			update_transaction(result.classified_transaction, data_dir)
+			storage.update_transaction(result.classified_transaction)
 
 	return results

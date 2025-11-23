@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from small_business.models import JournalEntry, Transaction
 from small_business.reports.bas_gst import generate_bas_report
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_generate_bas_report(tmp_path):
@@ -45,9 +45,10 @@ def test_generate_bas_report(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
-	save_transaction(txn3, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
+	storage.save_transaction(txn3)
 
 	# Generate BAS report
 	report = generate_bas_report(

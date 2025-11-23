@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.profit_loss import generate_profit_loss_report
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_generate_profit_loss_report(tmp_path):
@@ -54,9 +54,10 @@ def test_generate_profit_loss_report(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
-	save_transaction(txn3, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
+	storage.save_transaction(txn3)
 
 	# Generate P&L report
 	report = generate_profit_loss_report(

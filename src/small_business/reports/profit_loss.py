@@ -4,8 +4,8 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import AccountType, ChartOfAccounts
-from small_business.storage.transaction_store import load_transactions
+from small_business.models import AccountType, ChartOfAccounts, get_financial_year
+from small_business.storage import StorageRegistry
 
 
 def generate_profit_loss_report(
@@ -26,7 +26,9 @@ def generate_profit_loss_report(
 		Dictionary with income, expenses, and net profit
 	"""
 	# Load transactions in date range
-	transactions = load_transactions(data_dir, end_date)
+	storage = StorageRegistry(data_dir)
+	fy = get_financial_year(end_date)
+	transactions = storage.get_all_transactions(financial_year=fy)
 	transactions = [t for t in transactions if start_date <= t.date <= end_date]
 
 	# Calculate income by account

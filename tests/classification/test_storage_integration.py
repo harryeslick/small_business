@@ -11,7 +11,7 @@ from small_business.classification.storage_integration import (
 	load_and_classify_unclassified,
 )
 from small_business.models.transaction import JournalEntry, Transaction
-from small_business.storage import load_transactions, save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_classify_and_save(tmp_path: Path):
@@ -55,7 +55,11 @@ def test_classify_and_save(tmp_path: Path):
 	assert result.classified_transaction is not None
 
 	# Verify transaction was saved to storage
-	loaded_txns = load_transactions(data_dir, txn.date)
+	storage = StorageRegistry(data_dir)
+	from small_business.models import get_financial_year
+
+	fy = get_financial_year(txn.date)
+	loaded_txns = storage.get_all_transactions(financial_year=fy)
 	assert len(loaded_txns) == 1
 	assert loaded_txns[0].transaction_id == "TXN-001"
 	assert loaded_txns[0].entries[0].account_code == "EXP-GRO"
@@ -101,9 +105,10 @@ def test_load_and_classify_unclassified(tmp_path: Path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
-	save_transaction(txn3, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
+	storage.save_transaction(txn3)
 
 	rules = [
 		ClassificationRule(
@@ -136,7 +141,11 @@ def test_load_and_classify_unclassified(tmp_path: Path):
 	assert results["TXN-002"].decision.value == "pending"
 
 	# Verify TXN-001 was updated in storage
-	loaded_txns = load_transactions(data_dir, txn1.date)
+	from small_business.models import get_financial_year
+
+	storage2 = StorageRegistry(data_dir)
+	fy = get_financial_year(txn1.date)
+	loaded_txns = storage2.get_all_transactions(financial_year=fy)
 	txn_001 = next(t for t in loaded_txns if t.transaction_id == "TXN-001")
 	assert txn_001.entries[0].account_code == "EXP-GRO"
 

@@ -4,8 +4,8 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import AccountType, ChartOfAccounts
-from small_business.storage.transaction_store import load_transactions
+from small_business.models import AccountType, ChartOfAccounts, get_financial_year
+from small_business.storage import StorageRegistry
 
 
 def generate_balance_sheet(
@@ -23,7 +23,9 @@ def generate_balance_sheet(
 	Returns:
 		Dictionary with assets, liabilities, and equity
 	"""
-	transactions = load_transactions(data_dir, as_of_date)
+	storage = StorageRegistry(data_dir)
+	fy = get_financial_year(as_of_date)
+	transactions = storage.get_all_transactions(financial_year=fy)
 	transactions = [t for t in transactions if t.date <= as_of_date]
 
 	# Calculate assets

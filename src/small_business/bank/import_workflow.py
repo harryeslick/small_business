@@ -6,8 +6,9 @@ from small_business.bank.converter import convert_to_transaction
 from small_business.bank.duplicate import is_duplicate
 from small_business.bank.models import ImportedBankStatement
 from small_business.bank.parser import parse_csv
+from small_business.models import get_financial_year
 from small_business.models.config import BankFormat
-from small_business.storage.transaction_store import load_transactions, save_transaction
+from small_business.storage import StorageRegistry
 
 
 def import_bank_statement(
@@ -48,12 +49,14 @@ def import_bank_statement(
 
 	# Load existing transactions to check duplicates
 	# Get all transactions from the financial year(s) covered by this statement
+	storage = StorageRegistry(data_dir)
 	existing_statements: list[ImportedBankStatement] = []
 	if statement.transactions:
 		# We'll check duplicates by loading all transactions from relevant financial years
 		# For simplicity, load from the first transaction's date
 		first_date = statement.transactions[0].date
-		existing_txns = load_transactions(data_dir, first_date)
+		fy = get_financial_year(first_date)
+		existing_txns = storage.get_all_transactions(financial_year=fy)
 
 		# Convert to ImportedBankStatement format for duplicate checking
 		if existing_txns:
@@ -120,7 +123,7 @@ def import_bank_statement(
 		)
 
 		# Save transaction
-		save_transaction(accounting_txn, data_dir)
+		storage.save_transaction(accounting_txn)
 		imported += 1
 
 	return {"imported": imported, "duplicates": duplicates}

@@ -7,7 +7,7 @@ import pytest
 
 from small_business.documents.generator import generate_invoice_document, generate_quote_document
 from small_business.models import Client, Invoice, LineItem, Quote, Settings
-from small_business.storage import save_client, save_settings
+from small_business.storage import StorageRegistry
 
 
 def test_generate_quote_document_raises_when_client_not_found(tmp_path):
@@ -41,19 +41,20 @@ def test_generate_quote_document_raises_when_template_not_found(tmp_path):
 	output_dir.mkdir()
 
 	# Save client
+	storage = StorageRegistry(data_dir)
 	client = Client(
 		client_id="Acme Corp",
 		name="Acme Corp",
 		email="contact@acme.com",
 	)
-	save_client(client, data_dir)
+	storage.save_client(client)
 
 	# Save settings with non-existent template path
 	settings = Settings(
 		business_name="My Business",
 		quote_template_path="nonexistent/template.docx",
 	)
-	save_settings(settings, data_dir)
+	storage.save_settings(settings)
 
 	# Create quote
 	quote = Quote(
@@ -104,18 +105,19 @@ def test_generate_invoice_document_raises_when_template_not_found(tmp_path):
 	output_dir.mkdir()
 
 	# Save client
+	storage = StorageRegistry(data_dir)
 	client = Client(
 		client_id="Test Client",
 		name="Test Client",
 	)
-	save_client(client, data_dir)
+	storage.save_client(client)
 
 	# Save settings with non-existent template path
 	settings = Settings(
 		business_name="My Business",
 		invoice_template_path="nonexistent/template.docx",
 	)
-	save_settings(settings, data_dir)
+	storage.save_settings(settings)
 
 	# Create invoice
 	invoice = Invoice(

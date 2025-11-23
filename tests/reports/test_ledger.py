@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from small_business.models import JournalEntry, Transaction
 from small_business.reports.ledger import calculate_account_balance, get_account_transactions
-from small_business.storage.transaction_store import save_transaction
+from small_business.storage import StorageRegistry
 
 
 def test_calculate_account_balance(tmp_path):
@@ -31,8 +31,9 @@ def test_calculate_account_balance(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
 
 	# Calculate balance
 	balance = calculate_account_balance("EXP-SUPPLIES", data_dir, date(2025, 11, 16))
@@ -75,9 +76,10 @@ def test_calculate_bank_account_balance(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
-	save_transaction(txn3, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
+	storage.save_transaction(txn3)
 
 	balance = calculate_account_balance("BANK-CHQ", data_dir, date(2025, 11, 16))
 
@@ -107,8 +109,9 @@ def test_get_account_transactions(tmp_path):
 		],
 	)
 
-	save_transaction(txn1, data_dir)
-	save_transaction(txn2, data_dir)
+	storage = StorageRegistry(data_dir)
+	storage.save_transaction(txn1)
+	storage.save_transaction(txn2)
 
 	# Get transactions for EXP-TEST
 	transactions = get_account_transactions("EXP-TEST", data_dir, date(2025, 11, 16))
