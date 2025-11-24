@@ -11,15 +11,24 @@ from .utils import generate_invoice_id, get_financial_year
 
 
 class Invoice(BaseModel):
-	"""Invoice for completed work."""
+	"""Invoice for completed work.
+
+	Status is derived from date fields:
+	- DRAFT: No date_issued
+	- SENT: date_issued set, not paid/cancelled, not overdue
+	- OVERDUE: date_issued set, date.today() > date_due, not paid/cancelled
+	- PAID: date_paid set
+	- CANCELLED: date_cancelled set
+	"""
 
 	invoice_id: str = Field(default_factory=generate_invoice_id)
 	job_id: str | None = None
 	client_id: str
-	date_issued: date = Field(default_factory=date.today)
+	date_created: date = Field(default_factory=date.today)
+	date_issued: date | None = None
 	date_due: date
-	status: InvoiceStatus = InvoiceStatus.DRAFT
-	payment_date: date | None = None
+	date_paid: date | None = None
+	date_cancelled: date | None = None
 	payment_amount: Decimal | None = Field(default=None, ge=0, decimal_places=2)
 	payment_reference: str = ""
 	line_items: list[LineItem] = Field(min_length=1)
@@ -28,9 +37,31 @@ class Invoice(BaseModel):
 
 	@computed_field
 	@property
+	def status(self) -> InvoiceStatus:
+		"""Derive status from date fields."""
+		if self.date_cancelled:
+			return InvoiceStatus.CANCELLED
+		if self.date_paid:
+			return InvoiceStatus.PAID
+		if self.date_issued:
+			if date.today() > self.date_due:
+				return InvoiceStatus.OVERDUE
+			return InvoiceStatus.SENT
+		return InvoiceStatus.DRAFT
+
+	@computed_field
+	@property
+	def days_outstanding(self) -> int | None:
+		"""Days since invoice was issued (if sent and not paid)."""
+		if self.date_issued and not self.date_paid and not self.date_cancelled:
+			return (date.today() - self.date_issued).days
+		return None
+
+	@computed_field
+	@property
 	def financial_year(self) -> str:
-		"""Financial year based on date_issued."""
-		return get_financial_year(self.date_issued)
+		"""Financial year based on date_issued or date_created."""
+		return get_financial_year(self.date_issued or self.date_created)
 
 	@computed_field
 	@property

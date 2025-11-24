@@ -80,3 +80,79 @@ def test_quote_financial_year_before_july():
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert quote.financial_year == "2024-25"
+
+
+def test_quote_status_draft():
+	"""Test quote status is DRAFT when not sent."""
+	from small_business.models.enums import QuoteStatus
+
+	quote = Quote(
+		client_id="Test Client",
+		date_created=date(2025, 11, 15),
+		date_valid_until=date(2025, 12, 15),
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
+	)
+	assert quote.status == QuoteStatus.DRAFT
+	assert quote.is_active is True
+
+
+def test_quote_status_sent():
+	"""Test quote status is SENT when sent but not accepted/rejected."""
+	from small_business.models.enums import QuoteStatus
+
+	quote = Quote(
+		client_id="Test Client",
+		date_created=date(2025, 11, 15),
+		date_sent=date(2025, 11, 16),
+		date_valid_until=date(2025, 12, 15),
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
+	)
+	assert quote.status == QuoteStatus.SENT
+	assert quote.is_active is True
+
+
+def test_quote_status_accepted():
+	"""Test quote status is ACCEPTED when accepted."""
+	from small_business.models.enums import QuoteStatus
+
+	quote = Quote(
+		client_id="Test Client",
+		date_created=date(2025, 11, 15),
+		date_sent=date(2025, 11, 16),
+		date_accepted=date(2025, 11, 20),
+		date_valid_until=date(2025, 12, 15),
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
+	)
+	assert quote.status == QuoteStatus.ACCEPTED
+	assert quote.is_active is False
+
+
+def test_quote_status_rejected():
+	"""Test quote status is REJECTED when rejected."""
+	from small_business.models.enums import QuoteStatus
+
+	quote = Quote(
+		client_id="Test Client",
+		date_created=date(2025, 11, 15),
+		date_sent=date(2025, 11, 16),
+		date_rejected=date(2025, 11, 20),
+		date_valid_until=date(2025, 12, 15),
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
+	)
+	assert quote.status == QuoteStatus.REJECTED
+	assert quote.is_active is False
+
+
+def test_quote_status_expired():
+	"""Test quote status is EXPIRED when past valid_until date."""
+	from small_business.models.enums import QuoteStatus
+
+	quote = Quote(
+		client_id="Test Client",
+		date_created=date(2024, 11, 15),
+		date_sent=date(2024, 11, 16),
+		date_valid_until=date(2024, 12, 15),
+		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
+	)
+	assert quote.status == QuoteStatus.EXPIRED
+	assert quote.is_active is False

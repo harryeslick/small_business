@@ -20,33 +20,30 @@
 # ## Setup and Imports
 
 # %%
+import shutil
 from datetime import date, timedelta
 from decimal import Decimal
 from pathlib import Path
-import tempfile
-import shutil
 
 # Import models
 from small_business.models import (
-	Settings,
-	Client,
-	Quote,
-	QuoteStatus,
-	Job,
-	JobStatus,
-	Invoice,
-	InvoiceStatus,
-	LineItem,
 	Account,
 	AccountType,
 	ChartOfAccounts,
+	Client,
+	Invoice,
+	Job,
+	LineItem,
+	Quote,
+	Settings,
 )
 
 # Import storage
 from small_business.storage import StorageRegistry
 
 # Create a temporary data directory for this example
-data_dir = Path(tempfile.mkdtemp(prefix="earthworks_studio_"))
+data_dir = Path("./temp_small_business_data")
+data_dir.mkdir(exist_ok=True)
 print(f"📁 Data directory: {data_dir}")
 
 # Initialize storage registry (loads all data into memory)
@@ -197,7 +194,6 @@ quote = Quote(
 	client_id=gallery_client.client_id,
 	date_created=date.today(),
 	date_valid_until=date.today() + timedelta(days=30),
-	status=QuoteStatus.DRAFT,
 	line_items=[
 		# Service: Custom commission work (GST-exclusive hourly rate)
 		LineItem(
@@ -262,16 +258,17 @@ for i, item in enumerate(quote.line_items, 1):
 # %% [markdown]
 # ### Update Quote Status
 #
-# After client reviews and accepts the quote, we update the status.
+# After client reviews and accepts the quote, we update the status by setting date fields.
+# Status is automatically derived from these dates.
 
 # %%
-# Update quote status to SENT
-quote.status = QuoteStatus.SENT
+# Update quote to SENT by setting date_sent
+quote.date_sent = date.today()
 storage.save_quote(quote)
 print(f"✅ Quote status updated to: {quote.status.value}")
 
-# Simulate client acceptance
-quote.status = QuoteStatus.ACCEPTED
+# Simulate client acceptance by setting date_accepted
+quote.date_accepted = date.today() + timedelta(days=2)
 storage.save_quote(quote)
 print(f"✅ Quote accepted by client: {quote.status.value}")
 
@@ -287,7 +284,6 @@ job = Job(
 	client_id=quote.client_id,
 	date_accepted=date.today(),
 	scheduled_date=date.today() + timedelta(days=7),  # Start in 1 week
-	status=JobStatus.SCHEDULED,
 	notes="Client prefers warm earth tones. Reference images sent via email.",
 )
 
@@ -302,16 +298,18 @@ print(f"   Financial Year: {job.financial_year}")
 # %% [markdown]
 # ### Job Status Updates
 #
-# Track the job through its lifecycle.
+# Track the job through its lifecycle by setting date fields.
+# Status is automatically derived from these dates.
 
 # %%
-# Start work
-job.status = JobStatus.IN_PROGRESS
+# Start work by setting date_started
+job.date_started = date.today() + timedelta(days=7)
 print(f"🔨 Job status: {job.status.value}")
 
-# Complete work
-job.status = JobStatus.COMPLETED
+# Complete work by setting date_completed
+job.date_completed = date.today() + timedelta(days=45)
 print(f"✅ Job status: {job.status.value}")
+print(f"   Duration: {job.duration_days} days")
 
 # %% [markdown]
 # ### Track Job Costs (Example)
@@ -338,9 +336,7 @@ print(f"📊 Job costs tracked: {len(job.actual_costs)} transactions linked")
 invoice = Invoice(
 	job_id=job.job_id,
 	client_id=job.client_id,
-	date_issued=date.today(),
 	date_due=date.today() + timedelta(days=14),  # Net 14 days
-	status=InvoiceStatus.DRAFT,
 	line_items=quote.line_items,  # Copy line items from quote
 	notes="Thank you for your business! 50% deposit already received.",
 )
@@ -368,26 +364,26 @@ print(f"   Financial Year: {invoice.financial_year}")
 # ### Send Invoice and Record Payment
 
 # %%
-# Send invoice to client
-invoice.status = InvoiceStatus.SENT
+# Send invoice to client by setting date_issued
+invoice.date_issued = date.today() + timedelta(days=45)
 storage.save_invoice(invoice)
 print(f"📧 Invoice sent to client: {invoice.status.value}")
+print(f"   Days outstanding: {invoice.days_outstanding}")
 
-# Record payment
-invoice.payment_date = date.today() + timedelta(days=7)
+# Record payment by setting date_paid
+invoice.date_paid = date.today() + timedelta(days=52)
 invoice.payment_amount = invoice.total
 invoice.payment_reference = "Bank transfer - Ref: GAL27-INV"
-invoice.status = InvoiceStatus.PAID
 storage.save_invoice(invoice)
 
 print("✅ Payment recorded")
 print(f"   Amount: ${invoice.payment_amount:,.2f}")
-print(f"   Date: {invoice.payment_date}")
+print(f"   Date: {invoice.date_paid}")
 print(f"   Reference: {invoice.payment_reference}")
 print(f"   Status: {invoice.status.value}")
 
-# Update job status to invoiced
-job.status = JobStatus.INVOICED
+# Update job status to invoiced by setting date_invoiced
+job.date_invoiced = date.today() + timedelta(days=45)
 print(f"✅ Job status updated to: {job.status.value}")
 
 # %% [markdown]
@@ -403,11 +399,13 @@ print(f"   Status: {reloaded_quote.status.value}")
 print(f"   Total: ${reloaded_quote.total:,.2f}")
 
 # Reload invoice
-reloaded_invoice = storage.get_invoice(invoice.invoice_id, invoice.date_issued)
+reloaded_invoice = storage.get_invoice(
+	invoice.invoice_id, invoice.date_issued or invoice.date_created
+)
 print(f"\n📄 Invoice {reloaded_invoice.invoice_id}:")
 print(f"   Status: {reloaded_invoice.status.value}")
 print(f"   Total: ${reloaded_invoice.total:,.2f}")
-print(f"   Paid: ${reloaded_invoice.payment_amount:,.2f} on {reloaded_invoice.payment_date}")
+print(f"   Paid: ${reloaded_invoice.payment_amount:,.2f} on {reloaded_invoice.date_paid}")
 
 # Workflow summary
 print("\n✅ Complete Workflow Summary:")

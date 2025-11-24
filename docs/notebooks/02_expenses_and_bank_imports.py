@@ -28,9 +28,9 @@ from small_business.models import (
 	ChartOfAccounts,
 )
 from small_business.bank import (
-	parse_bank_csv,
+	parse_csv,
 	convert_to_transaction,
-	detect_duplicates,
+	is_duplicate,
 )
 from small_business.classification import (
 	create_rule,

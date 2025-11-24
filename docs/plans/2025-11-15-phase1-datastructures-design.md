@@ -1,8 +1,10 @@
 # Phase 1: Data Structures Design
 
 **Date:** 2025-11-15
-**Status:** Approved
+**Status:** Superseded (see 2025-11-24 refactoring notes below)
 **Phase:** Foundation (Phase 1)
+
+> **⚠️ 2025-11-24 Update:** Status tracking has been refactored to use date-driven derived status instead of stored enums. See "Date-Driven Status Refactoring" section at the end of this document for details. The code examples in this document reflect the original design for historical reference.
 
 ## Overview
 
@@ -15,7 +17,7 @@ Phase 1 establishes the core Pydantic models for the small business management s
 - **Hybrid flat hierarchy**: Chart of accounts stored as flat list with utility methods for tree operations
 - **Computed fields**: Automatic calculations for totals, GST, and financial year
 - **Pragmatic validation**: Data integrity (types, constraints) without complex business logic
-- **Enums for status**: Type-safe workflow state tracking
+- **Date-driven status** (as of 2025-11-24): Status derived from date fields instead of stored enums
 
 ## Foundation Utilities
 
@@ -581,3 +583,146 @@ Phase 1 delivers a complete, type-safe data foundation with:
 - ✅ Ready for JSON serialization to plain-text storage
 
 Next step: Implement these models with tests, then proceed to Phase 2 (Bank imports and transaction management).
+
+---
+
+## Date-Driven Status Refactoring (2025-11-24)
+
+### Motivation
+
+The original design stored status as an enum field alongside date fields (e.g., `status=PAID` plus `payment_date`). This created duplication where the date fields conveyed the same information as the status enum. The refactoring eliminates this duplication by making status a computed field derived from dates.
+
+### Changes
+
+#### Quote Model
+```python
+class Quote(BaseModel):
+    """Quote/proposal for client work."""
+
+    quote_id: str
+    client_id: str
+    date_created: date
+    date_sent: date | None = None          # New
+    date_accepted: date | None = None      # New
+    date_rejected: date | None = None      # New
+    date_valid_until: date
+    line_items: list[LineItem]
+    version: int = 1
+
+    @computed_field
+    @property
+    def status(self) -> QuoteStatus:
+        """Derive status from date fields."""
+        if self.date_accepted:
+            return QuoteStatus.ACCEPTED
+        if self.date_rejected:
+            return QuoteStatus.REJECTED
+        if date.today() > self.date_valid_until:
+            return QuoteStatus.EXPIRED
+        if self.date_sent:
+            return QuoteStatus.SENT
+        return QuoteStatus.DRAFT
+
+    @computed_field
+    @property
+    def is_active(self) -> bool:
+        """Whether quote can still be accepted."""
+        return self.status in (QuoteStatus.DRAFT, QuoteStatus.SENT)
+```
+
+#### Invoice Model
+```python
+class Invoice(BaseModel):
+    """Invoice for completed work."""
+
+    invoice_id: str
+    client_id: str
+    date_created: date                   # New
+    date_issued: date | None = None      # Changed from required
+    date_due: date
+    date_paid: date | None = None        # Renamed from payment_date
+    date_cancelled: date | None = None   # New
+    payment_amount: Decimal | None = None
+    payment_reference: str = ""
+    line_items: list[LineItem]
+    version: int = 1
+
+    @computed_field
+    @property
+    def status(self) -> InvoiceStatus:
+        """Derive status from date fields."""
+        if self.date_cancelled:
+            return InvoiceStatus.CANCELLED
+        if self.date_paid:
+            return InvoiceStatus.PAID
+        if self.date_issued:
+            if date.today() > self.date_due:
+                return InvoiceStatus.OVERDUE
+            return InvoiceStatus.SENT
+        return InvoiceStatus.DRAFT
+
+    @computed_field
+    @property
+    def days_outstanding(self) -> int | None:
+        """Days since invoice was issued."""
+        if self.date_issued and not self.date_paid and not self.date_cancelled:
+            return (date.today() - self.date_issued).days
+        return None
+```
+
+#### Job Model
+```python
+class Job(BaseModel):
+    """Job/work tracking."""
+
+    job_id: str
+    client_id: str
+    date_accepted: date
+    scheduled_date: date | None = None
+    date_started: date | None = None     # New
+    date_completed: date | None = None   # New
+    date_invoiced: date | None = None    # New
+    actual_costs: list[str] = []
+
+    @computed_field
+    @property
+    def status(self) -> JobStatus:
+        """Derive status from date fields."""
+        if self.date_invoiced:
+            return JobStatus.INVOICED
+        if self.date_completed:
+            return JobStatus.COMPLETED
+        if self.date_started:
+            return JobStatus.IN_PROGRESS
+        return JobStatus.SCHEDULED
+
+    @computed_field
+    @property
+    def duration_days(self) -> int | None:
+        """Days between start and completion."""
+        if self.date_started and self.date_completed:
+            return (self.date_completed - self.date_started).days
+        return None
+```
+
+### Benefits
+
+1. **No duplication** - Status is computed, not stored
+2. **Single source of truth** - Date fields are authoritative
+3. **Temporal precision** - Know exactly when each transition occurred
+4. **Audit trail** - Dates provide historical record
+5. **Stateless philosophy** - Just read dates, compute state
+6. **Simpler updates** - Set date field instead of coordinating status + date
+
+### Migration
+
+Existing code that sets status directly:
+```python
+# Old way
+quote.status = QuoteStatus.SENT
+
+# New way
+quote.date_sent = date.today()
+```
+
+The status property automatically reflects the change.

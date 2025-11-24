@@ -161,8 +161,8 @@ def render_invoice_context(
 	}
 
 	# Add payment information if paid
-	if invoice.payment_date:
-		context["payment_date"] = format_date(invoice.payment_date)
+	if invoice.date_paid:
+		context["payment_date"] = format_date(invoice.date_paid)
 	if invoice.payment_amount:
 		context["payment_amount"] = format_currency(invoice.payment_amount)
 	if invoice.payment_reference:

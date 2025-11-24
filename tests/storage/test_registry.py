@@ -603,7 +603,8 @@ def test_in_memory_queries_are_fast(storage):
 
 	# Filter in-memory (Python list comprehension)
 	all_clients = storage.get_all_clients()
-	nsw_clients = [c for c in all_clients if c.state == "NSW"]
+	# Example: filter for NSW clients (none in this test, but demonstrates filtering)
+	_ = [c for c in all_clients if c.state == "NSW"]
 
 	# This works because data is already in memory
 	assert isinstance(all_clients, list)

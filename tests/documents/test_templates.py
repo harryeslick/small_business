@@ -149,7 +149,7 @@ def test_render_invoice_context_with_payment():
 		line_items=[
 			LineItem(description="Service", quantity=Decimal("1"), unit_price=Decimal("100.00"))
 		],
-		payment_date=date(2025, 11, 20),
+		date_paid=date(2025, 11, 20),
 		payment_amount=Decimal("110.00"),
 		payment_reference="PAY-001",
 	)

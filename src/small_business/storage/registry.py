@@ -4,7 +4,6 @@ This module implements an in-memory storage system optimized for small business 
 All data is loaded into memory at initialization and persisted incrementally to disk.
 """
 
-import json
 from datetime import date
 from pathlib import Path
 
@@ -325,8 +324,9 @@ class StorageRegistry:
 		self._invoices[(invoice.invoice_id, version)] = invoice
 		self._latest_invoices[invoice.invoice_id] = version
 
-		# Persist to disk
-		filepath = self._get_invoice_path(invoice.invoice_id, invoice.date_issued, version)
+		# Persist to disk (use date_issued if available, otherwise date_created)
+		invoice_date = invoice.date_issued or invoice.date_created
+		filepath = self._get_invoice_path(invoice.invoice_id, invoice_date, version)
 		filepath.parent.mkdir(parents=True, exist_ok=True)
 		filepath.write_text(invoice.model_dump_json(indent=2))
 
@@ -382,7 +382,11 @@ class StorageRegistry:
 			invoices = list(self._invoices.values())
 
 		if financial_year is not None:
-			invoices = [i for i in invoices if get_financial_year(i.date_issued) == financial_year]
+			invoices = [
+				i
+				for i in invoices
+				if get_financial_year(i.date_issued or i.date_created) == financial_year
+			]
 
 		return invoices
 
