@@ -32,6 +32,9 @@ class Settings(BaseModel):
 	quote_template_path: str = "templates/quote_template.docx"
 	invoice_template_path: str = "templates/invoice_template.docx"
 
+	# Chart of accounts path (relative to data_directory/config/)
+	chart_of_accounts_path: str = "chart_of_accounts.yaml"
+
 
 class BankFormat(BaseModel):
 	"""Configuration for a specific bank's CSV format."""

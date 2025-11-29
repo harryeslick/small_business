@@ -1,0 +1,62 @@
+# Chart of Accounts
+# This file defines the account hierarchy for the business.
+# Maximum 2-level hierarchy is enforced (parent → child).
+# Account type is inherited from parent accounts.
+
+# Assets
+- code: ASSET
+  name: Assets
+  account_type: asset
+  description: All asset accounts
+  sub_accounts:
+    - code: ASSET-BANK
+      name: Bank Accounts
+      description: Business bank accounts
+    - code: ASSET-AR
+      name: Accounts Receivable
+      description: Money owed by customers
+
+# Liabilities
+- code: LIABILITY
+  name: Liabilities
+  account_type: liability
+  description: All liability accounts
+  sub_accounts:
+    - code: LIABILITY-AP
+      name: Accounts Payable
+      description: Money owed to suppliers
+    - code: LIABILITY-GST
+      name: GST Payable
+      description: GST collected from customers
+
+# Equity
+- code: EQUITY
+  name: Owner's Equity
+  account_type: equity
+  description: Owner's equity accounts
+
+# Income
+- code: INCOME
+  name: Income
+  account_type: income
+  description: All income accounts
+  sub_accounts:
+    - code: INCOME-SALES
+      name: Sales Revenue
+      description: Revenue from sales
+
+# Expenses
+- code: EXPENSE
+  name: Expenses
+  account_type: expense
+  description: All expense accounts
+  sub_accounts:
+    - code: EXPENSE-TRAVEL
+      name: Travel Expenses
+      description: Travel and accommodation costs
+    - code: EXPENSE-MATERIALS
+      name: Materials
+      description: Materials and supplies
+    - code: EXPENSE-SUBCONTRACT
+      name: Subcontractors
+      description: Subcontractor fees

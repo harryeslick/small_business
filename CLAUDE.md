@@ -2,9 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## `small_business`. An Accounts Management System for Small Business. 
 
-Small business account and job management system built with Python 3.13+. This is an early-stage project with minimal implementation currently.
+This package is designed to be a simple tool for assisting with management of invoicing and account management for small business in Australia. The package is designed for a simple sole trader business, with low account complexity. The software should be easy to manage and make business management simpler, not more complex.
+
+## Design Philosophy
+
+The package should be simple and lightweight and portable. The software is designed to run locally on a single machine.
+
+**Core Principles:**
+- All datafiles stored as plain text formats: CSV, JSON, YAML
+- UNIX style plain text configuration
+- Software is stateless, with account state determined via an Event-Sourcing pattern from event logs stored in plain text and loaded at startup
+- Written in Python 3.13+ using a terminal TUI user interface
+- Prioritize simplicity and usability over feature complexity
+
 
 ## Development Commands
 
@@ -86,7 +98,6 @@ tests/                  # pytest test suite
 - **Pydantic**: Data validation and modeling (Phase 1 foundation)
 - **pytest**: Testing framework with code coverage
 - **MkDocs Material**: Documentation with mkdocs-jupyter for executable notebooks
-- **pre-commit**: Code quality enforcement with ruff and codespell
 
 ### Documentation
 MkDocs is configured to execute Jupyter notebooks during build (via mkdocs-jupyter plugin). Python files in `docs/notebooks/` are treated as notebooks and executed when building documentation.
