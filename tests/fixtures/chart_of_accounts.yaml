@@ -1,0 +1,31 @@
+- name: asset
+  description: Resources owned by the business
+  accounts:
+    - name: Cash
+      description: Physical cash and coins
+    - name: Accounts Receivable
+      description: Money owed to the business by customers
+
+- name: liability
+  description: Obligations owed by the business
+  accounts:
+    - name: Accounts Payable
+      description: Money owed to suppliers
+
+- name: equity
+  description: Owner's stake in the business
+  accounts:
+    - name: Owner's Capital
+      description: Initial and additional capital invested
+
+- name: income
+  description: Revenue earned by the business
+  accounts:
+    - name: Sales
+      description: Revenue from product/service sales
+
+- name: expense
+  description: Costs incurred in operations
+  accounts:
+    - name: Supplies
+      description: Operating supplies and materials

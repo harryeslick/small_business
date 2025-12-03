@@ -41,11 +41,11 @@ def generate_profit_loss_report(
 			balance = Decimal("0")
 			for txn in transactions:
 				for entry in txn.entries:
-					if entry.account_code == account.code:
+					if entry.account_code == account.name:
 						balance += entry.credit - entry.debit
 
 			if balance > 0:
-				income_accounts[account.code] = {
+				income_accounts[account.name] = {
 					"name": account.name,
 					"balance": balance,
 				}
@@ -61,11 +61,11 @@ def generate_profit_loss_report(
 			balance = Decimal("0")
 			for txn in transactions:
 				for entry in txn.entries:
-					if entry.account_code == account.code:
+					if entry.account_code == account.name:
 						balance += entry.debit - entry.credit
 
 			if balance > 0:
-				expense_accounts[account.code] = {
+				expense_accounts[account.name] = {
 					"name": account.name,
 					"balance": balance,
 				}

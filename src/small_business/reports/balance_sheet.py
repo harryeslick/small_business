@@ -38,11 +38,11 @@ def generate_balance_sheet(
 			balance = Decimal("0")
 			for txn in transactions:
 				for entry in txn.entries:
-					if entry.account_code == account.code:
+					if entry.account_code == account.name:
 						balance += entry.debit - entry.credit
 
 			if balance != 0:
-				asset_accounts[account.code] = {
+				asset_accounts[account.name] = {
 					"name": account.name,
 					"balance": balance,
 				}
@@ -58,11 +58,11 @@ def generate_balance_sheet(
 			balance = Decimal("0")
 			for txn in transactions:
 				for entry in txn.entries:
-					if entry.account_code == account.code:
+					if entry.account_code == account.name:
 						balance += entry.credit - entry.debit
 
 			if balance != 0:
-				liability_accounts[account.code] = {
+				liability_accounts[account.name] = {
 					"name": account.name,
 					"balance": balance,
 				}
@@ -78,11 +78,11 @@ def generate_balance_sheet(
 			balance = Decimal("0")
 			for txn in transactions:
 				for entry in txn.entries:
-					if entry.account_code == account.code:
+					if entry.account_code == account.name:
 						balance += entry.credit - entry.debit
 
 			if balance != 0:
-				equity_accounts[account.code] = {
+				equity_accounts[account.name] = {
 					"name": account.name,
 					"balance": balance,
 				}

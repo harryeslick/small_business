@@ -17,20 +17,20 @@
 # ## Setup and Imports
 
 # %%
+import shutil
+import tempfile
+from collections import defaultdict
 from datetime import date
 from decimal import Decimal
+from importlib.resources import files
 from pathlib import Path
-import tempfile
-import shutil
-from collections import defaultdict
 
 # Import models
 from small_business.models import (
-	Account,
 	AccountType,
 	ChartOfAccounts,
-	Transaction,
 	JournalEntry,
+	Transaction,
 	get_financial_year,
 )
 from small_business.storage import StorageRegistry
@@ -46,104 +46,29 @@ storage = StorageRegistry(data_dir)
 # ## 1. Setup Chart of Accounts
 
 # %%
-# Create comprehensive chart of accounts
-accounts = [
-	# Assets
-	Account(code="ASSETS", name="Assets", account_type=AccountType.ASSET),
-	Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET, parent_code="ASSETS"),
-	Account(
-		code="AR", name="Accounts Receivable", account_type=AccountType.ASSET, parent_code="ASSETS"
-	),
-	Account(code="INV", name="Inventory", account_type=AccountType.ASSET, parent_code="ASSETS"),
-	# Liabilities
-	Account(code="LIABILITIES", name="Liabilities", account_type=AccountType.LIABILITY),
-	Account(
-		code="AP",
-		name="Accounts Payable",
-		account_type=AccountType.LIABILITY,
-		parent_code="LIABILITIES",
-	),
-	Account(
-		code="GST-COLLECTED",
-		name="GST Collected",
-		account_type=AccountType.LIABILITY,
-		parent_code="LIABILITIES",
-	),
-	Account(
-		code="GST-PAID",
-		name="GST Paid",
-		account_type=AccountType.LIABILITY,
-		parent_code="LIABILITIES",
-	),
-	# Equity
-	Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
-	Account(
-		code="RETAINED",
-		name="Retained Earnings",
-		account_type=AccountType.EQUITY,
-		parent_code="EQUITY",
-	),
-	# Income
-	Account(code="INCOME", name="Income", account_type=AccountType.INCOME),
-	Account(
-		code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INCOME"
-	),
-	Account(
-		code="INC-COMMISSIONS",
-		name="Commission Work",
-		account_type=AccountType.INCOME,
-		parent_code="INCOME",
-	),
-	Account(
-		code="INC-SALES",
-		name="Product Sales",
-		account_type=AccountType.INCOME,
-		parent_code="INCOME",
-	),
-	# Expenses
-	Account(code="EXPENSES", name="Expenses", account_type=AccountType.EXPENSE),
-	Account(
-		code="EXP-MATERIALS",
-		name="Materials & Supplies",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXPENSES",
-	),
-	Account(
-		code="EXP-STUDIO",
-		name="Studio Rent",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXPENSES",
-	),
-	Account(
-		code="EXP-UTILITIES",
-		name="Utilities",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXPENSES",
-	),
-	Account(
-		code="EXP-MARKETING",
-		name="Marketing",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXPENSES",
-	),
-	Account(
-		code="EXP-INSURANCE",
-		name="Insurance",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXPENSES",
-	),
-]
+# Load default chart of accounts from package data
+default_coa_path = str(files("small_business.data").joinpath("default_chart_of_accounts.yaml"))
+chart = ChartOfAccounts.from_yaml(default_coa_path)
 
-chart = ChartOfAccounts(accounts=accounts)
-print("✅ Chart of accounts created")
+print("✅ Chart of accounts loaded")
 print(f"   Total accounts: {len(chart.accounts)}")
 
-# Display account hierarchy
-print("\n📊 Account Hierarchy:")
-for root in chart.get_root_accounts():
-	print(f"\n{root.code}: {root.name} ({root.account_type.value})")
-	for child in chart.get_children(root.code):
-		print(f"  └─ {child.code}: {child.name}")
+# Display accounts by type
+print("\n📊 Accounts by Type:")
+for account_type in [
+	AccountType.ASSET,
+	AccountType.LIABILITY,
+	AccountType.EQUITY,
+	AccountType.INCOME,
+	AccountType.EXPENSE,
+]:
+	accounts = chart.get_accounts_by_type(account_type)
+	if accounts:
+		print(f"\n{account_type.value.upper()}: {len(accounts)} accounts")
+		for acc in accounts[:5]:  # Show first 5
+			print(f"  • {acc.name}")
+		if len(accounts) > 5:
+			print(f"  ... and {len(accounts) - 5} more")
 
 # %% [markdown]
 # ## 2. Sample Transactions
@@ -151,15 +76,15 @@ for root in chart.get_root_accounts():
 # Create sample transactions for November 2025 to demonstrate reporting.
 
 # %%
-# Create sample transactions
+# Create sample transactions using account names from the chart
 transactions = [
 	# Opening balance
 	Transaction(
 		date=date(2025, 11, 1),
 		description="Opening balance - November",
 		entries=[
-			JournalEntry(account_code="BANK", debit=Decimal("5420.50")),
-			JournalEntry(account_code="EQUITY", credit=Decimal("5420.50")),
+			JournalEntry(account_code="Bank Account", debit=Decimal("5420.50")),
+			JournalEntry(account_code="Owner's Equity", credit=Decimal("5420.50")),
 		],
 	),
 	# Income: Commission payment from Gallery 27
@@ -167,9 +92,9 @@ transactions = [
 		date=date(2025, 11, 3),
 		description="Commission payment - Gallery 27 installation",
 		entries=[
-			JournalEntry(account_code="BANK", debit=Decimal("3400.00")),
-			JournalEntry(account_code="INC-COMMISSIONS", credit=Decimal("3090.91")),
-			JournalEntry(account_code="GST-COLLECTED", credit=Decimal("309.09")),
+			JournalEntry(account_code="Bank Account", debit=Decimal("3400.00")),
+			JournalEntry(account_code="Commission Work", credit=Decimal("3090.91")),
+			JournalEntry(account_code="GST Collected", credit=Decimal("309.09")),
 		],
 		gst_inclusive=True,
 	),
@@ -178,9 +103,9 @@ transactions = [
 		date=date(2025, 11, 5),
 		description="Clay and glazes - Clay Supplies Pty Ltd",
 		entries=[
-			JournalEntry(account_code="EXP-MATERIALS", debit=Decimal("259.09")),
-			JournalEntry(account_code="GST-PAID", debit=Decimal("25.91")),
-			JournalEntry(account_code="BANK", credit=Decimal("285.00")),
+			JournalEntry(account_code="Materials & Supplies", debit=Decimal("259.09")),
+			JournalEntry(account_code="GST Paid", debit=Decimal("25.91")),
+			JournalEntry(account_code="Bank Account", credit=Decimal("285.00")),
 		],
 		gst_inclusive=False,
 	),
@@ -189,8 +114,8 @@ transactions = [
 		date=date(2025, 11, 20),
 		description="Studio rent - November",
 		entries=[
-			JournalEntry(account_code="EXP-STUDIO", debit=Decimal("1200.00")),
-			JournalEntry(account_code="BANK", credit=Decimal("1200.00")),
+			JournalEntry(account_code="Studio Rent", debit=Decimal("1200.00")),
+			JournalEntry(account_code="Bank Account", credit=Decimal("1200.00")),
 		],
 		gst_inclusive=False,  # Commercial rent is GST-free
 	),
@@ -199,9 +124,9 @@ transactions = [
 		date=date(2025, 11, 12),
 		description="Electricity - AGL Energy",
 		entries=[
-			JournalEntry(account_code="EXP-UTILITIES", debit=Decimal("131.82")),
-			JournalEntry(account_code="GST-PAID", debit=Decimal("13.18")),
-			JournalEntry(account_code="BANK", credit=Decimal("145.00")),
+			JournalEntry(account_code="Utilities", debit=Decimal("131.82")),
+			JournalEntry(account_code="GST Paid", debit=Decimal("13.18")),
+			JournalEntry(account_code="Bank Account", credit=Decimal("145.00")),
 		],
 		gst_inclusive=False,
 	),
@@ -210,9 +135,9 @@ transactions = [
 		date=date(2025, 11, 15),
 		description="Pottery tools - Potter's Warehouse",
 		entries=[
-			JournalEntry(account_code="EXP-MATERIALS", debit=Decimal("415.27")),
-			JournalEntry(account_code="GST-PAID", debit=Decimal("41.53")),
-			JournalEntry(account_code="BANK", credit=Decimal("456.80")),
+			JournalEntry(account_code="Materials & Supplies", debit=Decimal("415.27")),
+			JournalEntry(account_code="GST Paid", debit=Decimal("41.53")),
+			JournalEntry(account_code="Bank Account", credit=Decimal("456.80")),
 		],
 		gst_inclusive=False,
 	),
@@ -221,9 +146,9 @@ transactions = [
 		date=date(2025, 11, 18),
 		description="Private pottery class - 4 sessions",
 		entries=[
-			JournalEntry(account_code="BANK", debit=Decimal("850.00")),
-			JournalEntry(account_code="INC-CLASSES", credit=Decimal("772.73")),
-			JournalEntry(account_code="GST-COLLECTED", credit=Decimal("77.27")),
+			JournalEntry(account_code="Bank Account", debit=Decimal("850.00")),
+			JournalEntry(account_code="Class Fees", credit=Decimal("772.73")),
+			JournalEntry(account_code="GST Collected", credit=Decimal("77.27")),
 		],
 		gst_inclusive=True,
 	),
@@ -232,9 +157,9 @@ transactions = [
 		date=date(2025, 11, 22),
 		description="Instagram advertising",
 		entries=[
-			JournalEntry(account_code="EXP-MARKETING", debit=Decimal("86.36")),
-			JournalEntry(account_code="GST-PAID", debit=Decimal("8.64")),
-			JournalEntry(account_code="BANK", credit=Decimal("95.00")),
+			JournalEntry(account_code="Marketing & Advertising", debit=Decimal("86.36")),
+			JournalEntry(account_code="GST Paid", debit=Decimal("8.64")),
+			JournalEntry(account_code="Bank Account", credit=Decimal("95.00")),
 		],
 		gst_inclusive=False,
 	),
@@ -243,9 +168,9 @@ transactions = [
 		date=date(2025, 11, 25),
 		description="Ceramic bowls - direct sale",
 		entries=[
-			JournalEntry(account_code="BANK", debit=Decimal("330.00")),
-			JournalEntry(account_code="INC-SALES", credit=Decimal("300.00")),
-			JournalEntry(account_code="GST-COLLECTED", credit=Decimal("30.00")),
+			JournalEntry(account_code="Bank Account", debit=Decimal("330.00")),
+			JournalEntry(account_code="Product Sales", credit=Decimal("300.00")),
+			JournalEntry(account_code="GST Collected", credit=Decimal("30.00")),
 		],
 		gst_inclusive=True,
 	),
@@ -315,7 +240,7 @@ for account_type in [
 		for item in type_accounts:
 			account = item["account"]
 			balance = item["balance"]
-			print(f"{account.code:<20} {account.name:<30} ${balance:>13,.2f}")
+			print(f"{account.account_type.encode()} {account.name:<30} ${balance:>13,.2f}")
 
 # %% [markdown]
 # ## 4. Trial Balance
@@ -530,7 +455,7 @@ def generate_gst_report(transactions, start_date, end_date):
 
 	for txn in period_txns:
 		for entry in txn.entries:
-			if entry.account_code == "GST-COLLECTED" and entry.credit > 0:
+			if entry.account_code == "GST Collected" and entry.credit > 0:
 				gst_collected += entry.credit
 				print(f"{txn.date} {txn.description[:43]:<45} ${entry.credit:>13,.2f}")
 
@@ -545,7 +470,7 @@ def generate_gst_report(transactions, start_date, end_date):
 
 	for txn in period_txns:
 		for entry in txn.entries:
-			if entry.account_code == "GST-PAID" and entry.debit > 0:
+			if entry.account_code == "GST Paid" and entry.debit > 0:
 				gst_paid += entry.debit
 				print(f"{txn.date} {txn.description[:43]:<45} ${entry.debit:>13,.2f}")
 
@@ -647,3 +572,5 @@ fy_summary = generate_financial_year_summary(transactions, chart, sample_fy)
 # Cleanup temporary directory
 shutil.rmtree(data_dir)
 print("🗑️  Cleaned up temporary data directory")
+
+# %%

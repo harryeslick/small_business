@@ -24,11 +24,11 @@ def test_complete_reporting_workflow(tmp_path):
 	# Create chart of accounts
 	chart = ChartOfAccounts(
 		accounts=[
-			Account(code="BANK-CHQ", name="Bank Cheque Account", account_type=AccountType.ASSET),
-			Account(code="INC-SALES", name="Sales Revenue", account_type=AccountType.INCOME),
-			Account(code="EXP-RENT", name="Rent", account_type=AccountType.EXPENSE),
-			Account(code="EXP-SUPPLIES", name="Supplies", account_type=AccountType.EXPENSE),
-			Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+			Account(name="Bank Cheque Account", account_type=AccountType.ASSET),
+			Account(name="Sales Revenue", account_type=AccountType.INCOME),
+			Account(name="Rent", account_type=AccountType.EXPENSE),
+			Account(name="Supplies", account_type=AccountType.EXPENSE),
+			Account(name="Owner's Equity", account_type=AccountType.EQUITY),
 		]
 	)
 
@@ -40,9 +40,11 @@ def test_complete_reporting_workflow(tmp_path):
 			description="Opening balance",
 			entries=[
 				JournalEntry(
-					account_code="BANK-CHQ", debit=Decimal("10000.00"), credit=Decimal("0")
+					account_code="Bank Cheque Account", debit=Decimal("10000.00"), credit=Decimal("0")
 				),
-				JournalEntry(account_code="EQUITY", debit=Decimal("0"), credit=Decimal("10000.00")),
+				JournalEntry(
+					account_code="Owner's Equity", debit=Decimal("0"), credit=Decimal("10000.00")
+				),
 			],
 		),
 		# Sales with GST
@@ -52,10 +54,10 @@ def test_complete_reporting_workflow(tmp_path):
 			gst_inclusive=True,
 			entries=[
 				JournalEntry(
-					account_code="BANK-CHQ", debit=Decimal("1100.00"), credit=Decimal("0")
+					account_code="Bank Cheque Account", debit=Decimal("1100.00"), credit=Decimal("0")
 				),
 				JournalEntry(
-					account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("1100.00")
+					account_code="Sales Revenue", debit=Decimal("0"), credit=Decimal("1100.00")
 				),
 			],
 		),
@@ -65,8 +67,10 @@ def test_complete_reporting_workflow(tmp_path):
 			description="Monthly rent",
 			gst_inclusive=True,
 			entries=[
-				JournalEntry(account_code="EXP-RENT", debit=Decimal("550.00"), credit=Decimal("0")),
-				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("550.00")),
+				JournalEntry(account_code="Rent", debit=Decimal("550.00"), credit=Decimal("0")),
+				JournalEntry(
+					account_code="Bank Cheque Account", debit=Decimal("0"), credit=Decimal("550.00")
+				),
 			],
 		),
 		# Supplies expense with GST
@@ -75,10 +79,10 @@ def test_complete_reporting_workflow(tmp_path):
 			description="Office supplies",
 			gst_inclusive=True,
 			entries=[
+				JournalEntry(account_code="Supplies", debit=Decimal("220.00"), credit=Decimal("0")),
 				JournalEntry(
-					account_code="EXP-SUPPLIES", debit=Decimal("220.00"), credit=Decimal("0")
+					account_code="Bank Cheque Account", debit=Decimal("0"), credit=Decimal("220.00")
 				),
-				JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("220.00")),
 			],
 		),
 	]
@@ -124,6 +128,7 @@ def test_complete_reporting_workflow(tmp_path):
 
 	# Generate BAS report
 	bas_report = generate_bas_report(
+		chart=chart,
 		data_dir=data_dir,
 		start_date=date(2025, 11, 1),
 		end_date=date(2025, 11, 30),

@@ -15,11 +15,11 @@ def test_generate_profit_loss_report(tmp_path):
 	# Create chart of accounts
 	chart = ChartOfAccounts(
 		accounts=[
-			Account(code="INC-SALES", name="Sales", account_type=AccountType.INCOME),
-			Account(code="INC-OTHER", name="Other Income", account_type=AccountType.INCOME),
-			Account(code="EXP-SUPPLIES", name="Supplies", account_type=AccountType.EXPENSE),
-			Account(code="EXP-RENT", name="Rent", account_type=AccountType.EXPENSE),
-			Account(code="BANK-CHQ", name="Bank", account_type=AccountType.ASSET),
+			Account(name="Sales", account_type=AccountType.INCOME),
+			Account(name="Other Income", account_type=AccountType.INCOME),
+			Account(name="Supplies", account_type=AccountType.EXPENSE),
+			Account(name="Rent", account_type=AccountType.EXPENSE),
+			Account(name="Bank", account_type=AccountType.ASSET),
 		]
 	)
 
@@ -29,8 +29,8 @@ def test_generate_profit_loss_report(tmp_path):
 		date=date(2025, 11, 15),
 		description="Sales",
 		entries=[
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("1000.00"), credit=Decimal("0")),
-			JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("1000.00")),
+			JournalEntry(account_code="Bank", debit=Decimal("1000.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Sales", debit=Decimal("0"), credit=Decimal("1000.00")),
 		],
 	)
 
@@ -39,8 +39,8 @@ def test_generate_profit_loss_report(tmp_path):
 		date=date(2025, 11, 16),
 		description="Supplies",
 		entries=[
-			JournalEntry(account_code="EXP-SUPPLIES", debit=Decimal("300.00"), credit=Decimal("0")),
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("300.00")),
+			JournalEntry(account_code="Supplies", debit=Decimal("300.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Bank", debit=Decimal("0"), credit=Decimal("300.00")),
 		],
 	)
 
@@ -49,8 +49,8 @@ def test_generate_profit_loss_report(tmp_path):
 		date=date(2025, 11, 17),
 		description="Rent",
 		entries=[
-			JournalEntry(account_code="EXP-RENT", debit=Decimal("500.00"), credit=Decimal("0")),
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("500.00")),
+			JournalEntry(account_code="Rent", debit=Decimal("500.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Bank", debit=Decimal("0"), credit=Decimal("500.00")),
 		],
 	)
 
@@ -74,8 +74,8 @@ def test_generate_profit_loss_report(tmp_path):
 
 	# Check breakdown
 	assert len(report["income"]) == 1
-	assert report["income"]["INC-SALES"]["balance"] == Decimal("1000.00")
+	assert report["income"]["Sales"]["balance"] == Decimal("1000.00")
 
 	assert len(report["expenses"]) == 2
-	assert report["expenses"]["EXP-SUPPLIES"]["balance"] == Decimal("300.00")
-	assert report["expenses"]["EXP-RENT"]["balance"] == Decimal("500.00")
+	assert report["expenses"]["Supplies"]["balance"] == Decimal("300.00")
+	assert report["expenses"]["Rent"]["balance"] == Decimal("500.00")

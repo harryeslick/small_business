@@ -25,6 +25,7 @@ from decimal import Decimal
 from pathlib import Path
 import shutil
 import tempfile
+from importlib.resources import files
 
 # Import models
 from small_business.models import (
@@ -62,34 +63,15 @@ storage = StorageRegistry(data_dir)
 # %% [markdown]
 # ## Chart of Accounts
 #
-# Define the accounts used by Creative Canvas Studio. This chart follows the standard
-# accounting structure: Assets, Income, Expenses, Liabilities, and Equity.
+# Load the default chart of accounts from the package data.
+# This includes standard accounts for Australian small businesses.
 
 # %%
-chart = ChartOfAccounts(
-	accounts=[
-		# Assets
-		Account(code="BANK-CHQ", name="Bank Cheque Account", account_type=AccountType.ASSET),
-		Account(code="BANK-SAV", name="Bank Savings Account", account_type=AccountType.ASSET),
-		Account(code="ASSET-EQUIP", name="Studio Equipment", account_type=AccountType.ASSET),
-		# Income
-		Account(code="INC-SALES", name="Artwork Sales", account_type=AccountType.INCOME),
-		Account(code="INC-COMMISSION", name="Commission Work", account_type=AccountType.INCOME),
-		Account(code="INC-WORKSHOP", name="Workshop Fees", account_type=AccountType.INCOME),
-		# Expenses
-		Account(code="EXP-RENT", name="Studio Rent", account_type=AccountType.EXPENSE),
-		Account(code="EXP-SUPPLIES", name="Art Supplies", account_type=AccountType.EXPENSE),
-		Account(code="EXP-EXHIBITION", name="Exhibition Costs", account_type=AccountType.EXPENSE),
-		Account(code="EXP-MARKETING", name="Marketing & Advertising", account_type=AccountType.EXPENSE),
-		Account(code="EXP-INSURANCE", name="Insurance", account_type=AccountType.EXPENSE),
-		# Liabilities
-		Account(code="LIAB-LOAN", name="Equipment Loan", account_type=AccountType.LIABILITY),
-		# Equity
-		Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
-	]
-)
+# Load default chart of accounts from package data
+default_coa_path = str(files("small_business.data").joinpath("default_chart_of_accounts.yaml"))
+chart = ChartOfAccounts.from_yaml(default_coa_path)
 
-print(f"✅ Chart of Accounts created with {len(chart.accounts)} accounts")
+print(f"✅ Chart of Accounts loaded with {len(chart.accounts)} accounts")
 print("\nAccount Summary:")
 print(f"   Assets: {sum(1 for a in chart.accounts if a.account_type == AccountType.ASSET)}")
 print(f"   Income: {sum(1 for a in chart.accounts if a.account_type == AccountType.INCOME)}")
@@ -112,8 +94,8 @@ txn_opening = Transaction(
 	date=date(2025, 11, 1),
 	description="Opening balance - November 2025",
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("15000.00"), credit=Decimal("0")),
-		JournalEntry(account_code="EQUITY", debit=Decimal("0"), credit=Decimal("15000.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("15000.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Owner's Equity", debit=Decimal("0"), credit=Decimal("15000.00")),
 	],
 )
 
@@ -123,8 +105,8 @@ txn_sale1 = Transaction(
 	description="Sale: Abstract landscape painting",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("2200.00"), credit=Decimal("0")),
-		JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("2200.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("2200.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Sales", debit=Decimal("0"), credit=Decimal("2200.00")),
 	],
 )
 
@@ -134,8 +116,8 @@ txn_rent = Transaction(
 	description="Monthly studio rent - November",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-RENT", debit=Decimal("1650.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("1650.00")),
+		JournalEntry(account_code="Studio Rent", debit=Decimal("1650.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("1650.00")),
 	],
 )
 
@@ -145,8 +127,8 @@ txn_commission = Transaction(
 	description="Commission: Custom portrait",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("3300.00"), credit=Decimal("0")),
-		JournalEntry(account_code="INC-COMMISSION", debit=Decimal("0"), credit=Decimal("3300.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("3300.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Commission Work", debit=Decimal("0"), credit=Decimal("3300.00")),
 	],
 )
 
@@ -156,8 +138,8 @@ txn_supplies1 = Transaction(
 	description="Canvas, paints, brushes",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-SUPPLIES", debit=Decimal("550.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("550.00")),
+		JournalEntry(account_code="Materials & Supplies", debit=Decimal("550.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("550.00")),
 	],
 )
 
@@ -167,8 +149,8 @@ txn_workshop = Transaction(
 	description="Watercolor painting workshop",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("880.00"), credit=Decimal("0")),
-		JournalEntry(account_code="INC-WORKSHOP", debit=Decimal("0"), credit=Decimal("880.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("880.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Class Fees", debit=Decimal("0"), credit=Decimal("880.00")),
 	],
 )
 
@@ -178,8 +160,8 @@ txn_exhibition = Transaction(
 	description="Gallery exhibition fees",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-EXHIBITION", debit=Decimal("440.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("440.00")),
+		JournalEntry(account_code="Miscellaneous Expenses", debit=Decimal("440.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("440.00")),
 	],
 )
 
@@ -189,8 +171,8 @@ txn_sale2 = Transaction(
 	description="Sale: Sculpture series (3 pieces)",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("4400.00"), credit=Decimal("0")),
-		JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("4400.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("4400.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Sales", debit=Decimal("0"), credit=Decimal("4400.00")),
 	],
 )
 
@@ -200,8 +182,8 @@ txn_marketing = Transaction(
 	description="Social media advertising",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-MARKETING", debit=Decimal("330.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("330.00")),
+		JournalEntry(account_code="Marketing & Advertising", debit=Decimal("330.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("330.00")),
 	],
 )
 
@@ -211,8 +193,8 @@ txn_equipment = Transaction(
 	description="Professional camera for artwork documentation",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="ASSET-EQUIP", debit=Decimal("2200.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("2200.00")),
+		JournalEntry(account_code="Equipment", debit=Decimal("2200.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("2200.00")),
 	],
 )
 
@@ -221,8 +203,8 @@ txn_loan = Transaction(
 	date=date(2025, 11, 26),
 	description="Equipment loan received",
 	entries=[
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("2000.00"), credit=Decimal("0")),
-		JournalEntry(account_code="LIAB-LOAN", debit=Decimal("0"), credit=Decimal("2000.00")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("2000.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Loans Payable", debit=Decimal("0"), credit=Decimal("2000.00")),
 	],
 )
 
@@ -232,8 +214,8 @@ txn_insurance = Transaction(
 	description="Studio and artwork insurance",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-INSURANCE", debit=Decimal("220.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("220.00")),
+		JournalEntry(account_code="Insurance", debit=Decimal("220.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("220.00")),
 	],
 )
 
@@ -243,8 +225,8 @@ txn_supplies2 = Transaction(
 	description="Specialty pigments and mediums",
 	gst_inclusive=True,
 	entries=[
-		JournalEntry(account_code="EXP-SUPPLIES", debit=Decimal("385.00"), credit=Decimal("0")),
-		JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("385.00")),
+		JournalEntry(account_code="Materials & Supplies", debit=Decimal("385.00"), credit=Decimal("0")),
+		JournalEntry(account_code="Bank Account", debit=Decimal("0"), credit=Decimal("385.00")),
 	],
 )
 
@@ -454,7 +436,7 @@ print("\n🏦 CASH POSITION")
 bank_balance = sum(
 	data['balance']
 	for code, data in bs_report['assets'].items()
-	if code.startswith('BANK')
+	if 'Bank' in code
 )
 print(f"   Bank Accounts:       ${bank_balance:>10,.2f}")
 

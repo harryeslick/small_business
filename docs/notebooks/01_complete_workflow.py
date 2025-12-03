@@ -23,6 +23,7 @@
 import shutil
 from datetime import date, timedelta
 from decimal import Decimal
+from importlib.resources import files
 from pathlib import Path
 
 # Import models
@@ -78,53 +79,31 @@ print("   Financial Year: July-June")
 # %% [markdown]
 # ### Chart of Accounts
 #
-# Set up a basic chart of accounts for the arts business. We'll use a simple two-level
-# hierarchy: parent accounts and sub-accounts.
+# Set up a basic chart of accounts for the arts business using a flat structure
+# with human-readable account names.
 
 # %%
 # Define chart of accounts
 accounts = [
 	# Assets
-	Account(code="BANK", name="Bank Account", account_type=AccountType.ASSET),
-	Account(code="AR", name="Accounts Receivable", account_type=AccountType.ASSET),
-	Account(code="INV", name="Inventory", account_type=AccountType.ASSET),
+	Account(name="Bank Account", account_type=AccountType.ASSET),
+	Account(name="Accounts Receivable", account_type=AccountType.ASSET),
+	Account(name="Inventory", account_type=AccountType.ASSET),
 	# Liabilities
-	Account(code="AP", name="Accounts Payable", account_type=AccountType.LIABILITY),
-	Account(code="GST", name="GST Collected", account_type=AccountType.LIABILITY),
-	Account(code="GST-PAID", name="GST Paid", account_type=AccountType.LIABILITY),
+	Account(name="Accounts Payable", account_type=AccountType.LIABILITY),
+	Account(name="GST Collected", account_type=AccountType.LIABILITY),
+	Account(name="GST Paid", account_type=AccountType.LIABILITY),
 	# Equity
-	Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+	Account(name="Owner's Equity", account_type=AccountType.EQUITY),
 	# Income
-	Account(code="INC", name="Income", account_type=AccountType.INCOME),
-	Account(
-		code="INC-CLASSES", name="Class Fees", account_type=AccountType.INCOME, parent_code="INC"
-	),
-	Account(
-		code="INC-COMMISSIONS",
-		name="Commission Work",
-		account_type=AccountType.INCOME,
-		parent_code="INC",
-	),
-	Account(
-		code="INC-SALES", name="Product Sales", account_type=AccountType.INCOME, parent_code="INC"
-	),
+	Account(name="Class Fees", account_type=AccountType.INCOME),
+	Account(name="Commission Work", account_type=AccountType.INCOME),
+	Account(name="Product Sales", account_type=AccountType.INCOME),
 	# Expenses
-	Account(code="EXP", name="Expenses", account_type=AccountType.EXPENSE),
-	Account(
-		code="EXP-MATERIALS",
-		name="Materials & Supplies",
-		account_type=AccountType.EXPENSE,
-		parent_code="EXP",
-	),
-	Account(
-		code="EXP-STUDIO", name="Studio Rent", account_type=AccountType.EXPENSE, parent_code="EXP"
-	),
-	Account(
-		code="EXP-UTILITIES", name="Utilities", account_type=AccountType.EXPENSE, parent_code="EXP"
-	),
-	Account(
-		code="EXP-MARKETING", name="Marketing", account_type=AccountType.EXPENSE, parent_code="EXP"
-	),
+	Account(name="Materials & Supplies", account_type=AccountType.EXPENSE),
+	Account(name="Studio Rent", account_type=AccountType.EXPENSE),
+	Account(name="Utilities", account_type=AccountType.EXPENSE),
+	Account(name="Marketing", account_type=AccountType.EXPENSE),
 ]
 
 chart = ChartOfAccounts(accounts=accounts)
@@ -136,6 +115,32 @@ print(
 print(
 	f"   Expense accounts: {len([a for a in chart.accounts if a.account_type == AccountType.EXPENSE])}"
 )
+
+# %% [markdown]
+# ### Alternative: Load from YAML
+#
+# For easier maintenance, you can define your chart of accounts in a YAML file and load it.
+# This is the recommended approach for production use.
+#
+# The package includes a comprehensive default chart of accounts suitable for Australian
+# small businesses. You can use it as-is or customize it for your needs.
+
+# %%
+# Load default chart of accounts from package data
+default_coa_path = str(files("small_business.data").joinpath("default_chart_of_accounts.yaml"))
+chart_from_yaml = ChartOfAccounts.from_yaml(default_coa_path)
+
+print("✅ Chart of accounts loaded from default YAML")
+print(f"   Total accounts: {len(chart_from_yaml.accounts)}")
+print(f"   Asset accounts: {len([a for a in chart_from_yaml.accounts if a.account_type == AccountType.ASSET])}")
+print(f"   Liability accounts: {len([a for a in chart_from_yaml.accounts if a.account_type == AccountType.LIABILITY])}")
+print(f"   Equity accounts: {len([a for a in chart_from_yaml.accounts if a.account_type == AccountType.EQUITY])}")
+print(f"   Income accounts: {len([a for a in chart_from_yaml.accounts if a.account_type == AccountType.INCOME])}")
+print(f"   Expense accounts: {len([a for a in chart_from_yaml.accounts if a.account_type == AccountType.EXPENSE])}")
+print("\n   Sample accounts:")
+print(f"   - {chart_from_yaml.get_account('Bank Account').name}")
+print(f"   - {chart_from_yaml.get_account('GST Collected').name}")
+print(f"   - {chart_from_yaml.get_account('Class Fees').name}")
 
 # %% [markdown]
 # ## 2. Client Management
@@ -428,13 +433,17 @@ print(f"   GST collected: ${invoice.gst_amount:,.2f}")
 #    subtotals, GST, and totals from line items. This eliminates manual calculation
 #    errors and handles mixed GST-inclusive/exclusive items correctly.
 #
-# 2. **Human-Readable IDs**: Client IDs use business names ("Gallery 27") for
-#    easy identification, while Quote/Job/Invoice IDs use generated codes for
-#    audit trails and uniqueness guarantees.
+# 2. **Human-Readable IDs**: Both Client IDs and Account names use business-meaningful
+#    identifiers ("Gallery 27", "Bank Account") for easy identification and debugging.
+#    Quote/Job/Invoice IDs use generated codes for audit trails and uniqueness.
 #
-# 3. **Type-Safe Workflow**: Pydantic models provide validation at every step,
-#    ensuring data integrity (e.g., balanced transactions, valid dates, positive
-#    quantities).
+# 3. **YAML Configuration**: Chart of accounts can be loaded from YAML files,
+#    separating configuration from code and enabling non-developers to modify
+#    account structures without touching Python.
+#
+# 4. **Type-Safe Workflow**: Pydantic models provide validation at every step,
+#    ensuring data integrity (e.g., duplicate account names prevented, valid dates,
+#    positive quantities).
 #
 # **─────────────────────────────────────────────────**
 

@@ -1,0 +1,129 @@
+# Default Chart of Accounts for Australian Small Business
+#
+# This chart of accounts is designed for small businesses in Australia,
+# with a focus on service-based and creative businesses (e.g., arts, consulting).
+#
+# It includes accounts for:
+# - GST tracking (GST Collected and GST Paid)
+# - Common income streams (services, products, commissions)
+# - Typical operating expenses
+# - Basic asset, liability, and equity accounts
+#
+# You can customize this chart by:
+# 1. Adding new accounts under existing categories
+# 2. Removing accounts you don't need
+# 3. Modifying descriptions to match your business
+#
+# Account names should be unique and descriptive.
+
+- name: asset
+  description: Resources owned by the business
+  accounts:
+    - name: Bank Account
+      description: Business bank account and cash at bank
+    - name: Accounts Receivable
+      description: Money owed to the business by customers
+    - name: Inventory
+      description: Stock on hand for sale
+    - name: Equipment
+      description: Tools, machinery, and equipment
+    - name: Furniture & Fixtures
+      description: Office furniture and fixtures
+    - name: Computer Equipment
+      description: Computers, tablets, and peripherals
+    - name: Prepaid Expenses
+      description: Expenses paid in advance (insurance, rent, etc.)
+
+- name: liability
+  description: Obligations owed by the business
+  accounts:
+    - name: Accounts Payable
+      description: Money owed to suppliers and vendors
+    - name: GST Collected
+      description: GST collected from sales (owed to ATO)
+    - name: GST Paid
+      description: GST paid on purchases (recoverable from ATO)
+    - name: PAYG Withholding
+      description: Tax withheld from employee wages
+    - name: Superannuation Payable
+      description: Superannuation owed to employees
+    - name: Credit Card
+      description: Business credit card balance
+    - name: Loans Payable
+      description: Business loans and borrowings
+
+- name: equity
+  description: Owner's stake in the business
+  accounts:
+    - name: Owner's Equity
+      description: Owner's investment and retained earnings
+    - name: Drawings
+      description: Owner withdrawals from the business
+    - name: Retained Earnings
+      description: Accumulated profits retained in the business
+
+- name: income
+  description: Revenue earned by the business
+  accounts:
+    - name: Sales
+      description: Revenue from product sales
+    - name: Service Income
+      description: Revenue from services provided
+    - name: Class Fees
+      description: Revenue from classes, workshops, or training
+    - name: Commission Work
+      description: Revenue from custom commission projects
+    - name: Product Sales
+      description: Sales of finished goods or products
+    - name: Consulting Fees
+      description: Revenue from consulting services
+    - name: Interest Income
+      description: Interest earned on bank accounts
+    - name: Other Income
+      description: Miscellaneous revenue
+
+- name: expense
+  description: Costs incurred in operations
+  accounts:
+    - name: Cost of Goods Sold
+      description: Direct costs of producing goods sold
+    - name: Materials & Supplies
+      description: Raw materials and operating supplies
+    - name: Studio Rent
+      description: Rent for studio, workshop, or office space
+    - name: Office Rent
+      description: Office space rental costs
+    - name: Utilities
+      description: Electricity, water, gas, and internet
+    - name: Telephone & Internet
+      description: Phone and internet services
+    - name: Marketing & Advertising
+      description: Advertising, promotion, and marketing costs
+    - name: Professional Fees
+      description: Accountant, lawyer, and consultant fees
+    - name: Bank Fees
+      description: Bank charges and transaction fees
+    - name: Insurance
+      description: Business insurance premiums
+    - name: Wages & Salaries
+      description: Employee wages and salaries
+    - name: Superannuation Expense
+      description: Employer superannuation contributions
+    - name: Travel & Accommodation
+      description: Business travel and accommodation costs
+    - name: Motor Vehicle Expenses
+      description: Vehicle running costs and fuel
+    - name: Repairs & Maintenance
+      description: Repairs and maintenance of equipment/property
+    - name: Printing & Stationery
+      description: Office supplies, printing, and stationery
+    - name: Software & Subscriptions
+      description: Software licenses and online subscriptions
+    - name: Training & Development
+      description: Professional development and training costs
+    - name: Depreciation
+      description: Depreciation of assets
+    - name: Bad Debts
+      description: Uncollectible receivables written off
+    - name: Miscellaneous Expenses
+      description: Other business expenses

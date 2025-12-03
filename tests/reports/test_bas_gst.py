@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from small_business.models import JournalEntry, Transaction
+from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.bas_gst import generate_bas_report
 from small_business.storage import StorageRegistry
 
@@ -12,14 +12,23 @@ def test_generate_bas_report(tmp_path):
 	"""Test generating BAS/GST report."""
 	data_dir = tmp_path / "data"
 
+	# Create chart of accounts
+	chart = ChartOfAccounts(
+		accounts=[
+			Account(name="Bank", account_type=AccountType.ASSET),
+			Account(name="Sales", account_type=AccountType.INCOME),
+			Account(name="Supplies", account_type=AccountType.EXPENSE),
+		]
+	)
+
 	# GST collected (on sales) - GST inclusive $110 includes $10 GST
 	txn1 = Transaction(
 		date=date(2025, 11, 15),
 		description="Sales",
 		gst_inclusive=True,
 		entries=[
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("110.00"), credit=Decimal("0")),
-			JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("110.00")),
+			JournalEntry(account_code="Bank", debit=Decimal("110.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Sales", debit=Decimal("0"), credit=Decimal("110.00")),
 		],
 	)
 
@@ -29,8 +38,8 @@ def test_generate_bas_report(tmp_path):
 		description="Supplies",
 		gst_inclusive=True,
 		entries=[
-			JournalEntry(account_code="EXP-SUPPLIES", debit=Decimal("55.00"), credit=Decimal("0")),
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("55.00")),
+			JournalEntry(account_code="Supplies", debit=Decimal("55.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Bank", debit=Decimal("0"), credit=Decimal("55.00")),
 		],
 	)
 
@@ -40,8 +49,8 @@ def test_generate_bas_report(tmp_path):
 		description="More sales",
 		gst_inclusive=True,
 		entries=[
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("220.00"), credit=Decimal("0")),
-			JournalEntry(account_code="INC-SALES", debit=Decimal("0"), credit=Decimal("220.00")),
+			JournalEntry(account_code="Bank", debit=Decimal("220.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Sales", debit=Decimal("0"), credit=Decimal("220.00")),
 		],
 	)
 
@@ -52,6 +61,7 @@ def test_generate_bas_report(tmp_path):
 
 	# Generate BAS report
 	report = generate_bas_report(
+		chart=chart,
 		data_dir=data_dir,
 		start_date=date(2025, 11, 1),
 		end_date=date(2025, 11, 30),

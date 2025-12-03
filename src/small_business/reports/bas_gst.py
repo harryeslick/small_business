@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import get_financial_year
+from small_business.models import AccountType, ChartOfAccounts, get_financial_year
 from small_business.storage import StorageRegistry
 
 
@@ -27,6 +27,7 @@ def calculate_gst_component(amount: Decimal, gst_inclusive: bool) -> Decimal:
 
 
 def generate_bas_report(
+	chart: ChartOfAccounts,
 	data_dir: Path,
 	start_date: date,
 	end_date: date,
@@ -34,6 +35,7 @@ def generate_bas_report(
 	"""Generate BAS/GST report.
 
 	Args:
+		chart: Chart of accounts
 		data_dir: Data directory
 		start_date: Report start date
 		end_date: Report end date
@@ -46,6 +48,12 @@ def generate_bas_report(
 	transactions = storage.get_all_transactions(financial_year=fy)
 	transactions = [t for t in transactions if start_date <= t.date <= end_date]
 
+	# Build sets of income and expense account names
+	income_accounts = {acc.name for acc in chart.accounts if acc.account_type == AccountType.INCOME}
+	expense_accounts = {
+		acc.name for acc in chart.accounts if acc.account_type == AccountType.EXPENSE
+	}
+
 	total_sales = Decimal("0")
 	total_purchases = Decimal("0")
 	gst_on_sales = Decimal("0")
@@ -57,16 +65,16 @@ def generate_bas_report(
 		# Expense: has debit to expense account
 
 		is_income = any(
-			entry.account_code.startswith("INC") and entry.credit > 0 for entry in txn.entries
+			entry.account_code in income_accounts and entry.credit > 0 for entry in txn.entries
 		)
 		is_expense = any(
-			entry.account_code.startswith("EXP") and entry.debit > 0 for entry in txn.entries
+			entry.account_code in expense_accounts and entry.debit > 0 for entry in txn.entries
 		)
 
 		if is_income:
 			# Calculate sales amount and GST
 			for entry in txn.entries:
-				if entry.account_code.startswith("INC"):
+				if entry.account_code in income_accounts:
 					amount = entry.credit
 					total_sales += amount
 					if txn.gst_inclusive:
@@ -75,7 +83,7 @@ def generate_bas_report(
 		elif is_expense:
 			# Calculate purchase amount and GST
 			for entry in txn.entries:
-				if entry.account_code.startswith("EXP"):
+				if entry.account_code in expense_accounts:
 					amount = entry.debit
 					total_purchases += amount
 					if txn.gst_inclusive:

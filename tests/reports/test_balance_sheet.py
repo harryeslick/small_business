@@ -14,10 +14,10 @@ def test_generate_balance_sheet(tmp_path):
 
 	chart = ChartOfAccounts(
 		accounts=[
-			Account(code="BANK-CHQ", name="Bank Cheque", account_type=AccountType.ASSET),
-			Account(code="ASSET-EQUIP", name="Equipment", account_type=AccountType.ASSET),
-			Account(code="LIAB-LOAN", name="Business Loan", account_type=AccountType.LIABILITY),
-			Account(code="EQUITY", name="Owner's Equity", account_type=AccountType.EQUITY),
+			Account(name="Bank Cheque", account_type=AccountType.ASSET),
+			Account(name="Equipment", account_type=AccountType.ASSET),
+			Account(name="Business Loan", account_type=AccountType.LIABILITY),
+			Account(name="Owner's Equity", account_type=AccountType.EQUITY),
 		]
 	)
 
@@ -26,8 +26,8 @@ def test_generate_balance_sheet(tmp_path):
 		date=date(2025, 11, 1),
 		description="Opening balance",
 		entries=[
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("10000.00"), credit=Decimal("0")),
-			JournalEntry(account_code="EQUITY", debit=Decimal("0"), credit=Decimal("10000.00")),
+			JournalEntry(account_code="Bank Cheque", debit=Decimal("10000.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Owner's Equity", debit=Decimal("0"), credit=Decimal("10000.00")),
 		],
 	)
 
@@ -36,8 +36,8 @@ def test_generate_balance_sheet(tmp_path):
 		date=date(2025, 11, 15),
 		description="Equipment purchase",
 		entries=[
-			JournalEntry(account_code="ASSET-EQUIP", debit=Decimal("5000.00"), credit=Decimal("0")),
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("0"), credit=Decimal("5000.00")),
+			JournalEntry(account_code="Equipment", debit=Decimal("5000.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Bank Cheque", debit=Decimal("0"), credit=Decimal("5000.00")),
 		],
 	)
 
@@ -46,8 +46,8 @@ def test_generate_balance_sheet(tmp_path):
 		date=date(2025, 11, 20),
 		description="Business loan",
 		entries=[
-			JournalEntry(account_code="BANK-CHQ", debit=Decimal("3000.00"), credit=Decimal("0")),
-			JournalEntry(account_code="LIAB-LOAN", debit=Decimal("0"), credit=Decimal("3000.00")),
+			JournalEntry(account_code="Bank Cheque", debit=Decimal("3000.00"), credit=Decimal("0")),
+			JournalEntry(account_code="Business Loan", debit=Decimal("0"), credit=Decimal("3000.00")),
 		],
 	)
 
@@ -65,8 +65,8 @@ def test_generate_balance_sheet(tmp_path):
 
 	# Check assets: Bank (10000 - 5000 + 3000) + Equipment (5000) = 13000
 	assert report["total_assets"] == Decimal("13000.00")
-	assert report["assets"]["BANK-CHQ"]["balance"] == Decimal("8000.00")
-	assert report["assets"]["ASSET-EQUIP"]["balance"] == Decimal("5000.00")
+	assert report["assets"]["Bank Cheque"]["balance"] == Decimal("8000.00")
+	assert report["assets"]["Equipment"]["balance"] == Decimal("5000.00")
 
 	# Check liabilities: Loan = 3000
 	assert report["total_liabilities"] == Decimal("3000.00")
