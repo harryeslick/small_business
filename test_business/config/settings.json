@@ -1,0 +1,14 @@
+{
+  "gst_rate": "0.10",
+  "financial_year_start_month": 7,
+  "currency": "AUD",
+  "date_format": "%Y-%m-%d",
+  "business_name": "Test Business",
+  "business_abn": "",
+  "business_email": "",
+  "business_phone": "",
+  "business_address": "",
+  "data_directory": "data",
+  "quote_template_path": "templates/quote_template.docx",
+  "invoice_template_path": "templates/invoice_template.docx"
+}
