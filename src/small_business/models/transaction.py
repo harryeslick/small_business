@@ -36,6 +36,18 @@ class Transaction(BaseModel):
 	gst_inclusive: bool = False
 	notes: str = ""
 
+	# Bank import traceability metadata (optional - only for imported transactions)
+	import_source: str | None = None  # e.g., "bank_import"
+	import_file: str | None = None  # e.g., "statement_nov_2025.csv"
+	import_date: datetime.date | None = None  # When imported
+	import_line_number: int | None = None  # CSV row number
+
+	# Composite key for duplicate detection (transparent, portable)
+	import_match_date: datetime.date | None = None  # Date used for matching
+	import_match_description: str | None = None  # Description used for matching
+	import_match_amount: Decimal | None = None  # Amount used for matching
+	import_match_account: str | None = None  # Bank account code used for matching
+
 	@computed_field
 	@property
 	def financial_year(self) -> str:

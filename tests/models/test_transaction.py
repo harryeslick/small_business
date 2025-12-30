@@ -121,3 +121,55 @@ def test_transaction_with_receipt():
 		],
 	)
 	assert transaction.receipt_path.endswith(".pdf")
+
+
+def test_transaction_with_bank_import_metadata():
+	"""Test transaction created from bank import includes traceability metadata."""
+	transaction = Transaction(
+		date=date(2025, 11, 15),
+		description="Bank deposit",
+		entries=[
+			JournalEntry(account_code="BANK", debit=Decimal("100.00")),
+			JournalEntry(account_code="INC-UNCLASSIFIED", credit=Decimal("100.00")),
+		],
+		import_source="bank_import",
+		import_file="statement_nov_2025.csv",
+		import_date=date(2025, 12, 7),
+		import_line_number=42,
+		import_match_date=date(2025, 11, 15),
+		import_match_description="Bank deposit from statement",
+		import_match_amount=Decimal("100.00"),
+		import_match_account="BANK-CHQ",
+	)
+
+	assert transaction.import_source == "bank_import"
+	assert transaction.import_file == "statement_nov_2025.csv"
+	assert transaction.import_date == date(2025, 12, 7)
+	assert transaction.import_line_number == 42
+	# Composite key fields for duplicate detection (4 fields)
+	assert transaction.import_match_date == date(2025, 11, 15)
+	assert transaction.import_match_description == "Bank deposit from statement"
+	assert transaction.import_match_amount == Decimal("100.00")
+	assert transaction.import_match_account == "BANK-CHQ"
+
+
+def test_transaction_without_import_metadata_defaults_to_none():
+	"""Test transaction created manually has import metadata as None."""
+	transaction = Transaction(
+		date=date(2025, 11, 15),
+		description="Manual entry",
+		entries=[
+			JournalEntry(account_code="BANK", debit=Decimal("100.00")),
+			JournalEntry(account_code="INC", credit=Decimal("100.00")),
+		],
+	)
+
+	assert transaction.import_source is None
+	assert transaction.import_file is None
+	assert transaction.import_date is None
+	assert transaction.import_line_number is None
+	# Composite key fields should also be None (4 fields)
+	assert transaction.import_match_date is None
+	assert transaction.import_match_description is None
+	assert transaction.import_match_amount is None
+	assert transaction.import_match_account is None

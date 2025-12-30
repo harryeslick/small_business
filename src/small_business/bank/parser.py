@@ -32,7 +32,7 @@ def parse_csv(
 
 	# Parse transactions
 	transactions = []
-	for _, row in df.iterrows():
+	for idx, row in df.iterrows():
 		# Parse date
 		date_str = str(row[bank_format.date_column])
 		txn_date = datetime.strptime(date_str, bank_format.date_format).date()
@@ -69,13 +69,14 @@ def parse_csv(
 			balance_str = str(row[bank_format.balance_column])
 			balance = None if balance_str in ("", "nan") else Decimal(balance_str)
 
-		# Create transaction
+		# Create transaction with line number (pandas index is 0-based, CSV lines are 1-based + 1 for header)
 		txn = BankTransaction(
 			date=txn_date,
 			description=description,
 			debit=debit,
 			credit=credit,
 			balance=balance,
+			line_number=int(idx) + 2,  # +1 for 0-index, +1 for header row
 		)
 		transactions.append(txn)
 

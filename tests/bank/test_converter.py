@@ -69,3 +69,59 @@ def test_convert_credit_transaction():
 	# Credit should be income account (money coming in)
 	assert credit_entry.account_code == "INC-UNCLASSIFIED"
 	assert credit_entry.credit == Decimal("100.00")
+
+
+def test_convert_with_import_metadata():
+	"""Test converting bank transaction preserves import traceability metadata."""
+	bank_txn = BankTransaction(
+		date=date(2025, 11, 15),
+		description="PAYMENT RECEIVED",
+		debit=Decimal("0"),
+		credit=Decimal("100.00"),
+		line_number=42,
+	)
+
+	txn = convert_to_transaction(
+		bank_txn,
+		bank_account_code="BANK-CHQ",
+		import_file="statement_nov_2025.csv",
+		import_date=date(2025, 12, 7),
+	)
+
+	# Should include import metadata
+	assert txn.import_source == "bank_import"
+	assert txn.import_file == "statement_nov_2025.csv"
+	assert txn.import_date == date(2025, 12, 7)
+	assert txn.import_line_number == 42
+
+	# Composite key for duplicate detection (transparent, not hashed - 4 fields)
+	assert txn.import_match_date == date(2025, 11, 15)
+	assert txn.import_match_description == "PAYMENT RECEIVED"
+	assert txn.import_match_amount == Decimal("100.00")
+	assert txn.import_match_account == "BANK-CHQ"
+
+
+def test_convert_without_import_metadata():
+	"""Test converting without metadata results in None values."""
+	bank_txn = BankTransaction(
+		date=date(2025, 11, 15),
+		description="PAYMENT RECEIVED",
+		debit=Decimal("0"),
+		credit=Decimal("100.00"),
+	)
+
+	txn = convert_to_transaction(
+		bank_txn,
+		bank_account_code="BANK-CHQ",
+	)
+
+	# Should have no import metadata
+	assert txn.import_source is None
+	assert txn.import_file is None
+	assert txn.import_date is None
+	assert txn.import_line_number is None
+	# Composite key fields also None (4 fields)
+	assert txn.import_match_date is None
+	assert txn.import_match_description is None
+	assert txn.import_match_amount is None
+	assert txn.import_match_account is None

@@ -57,3 +57,27 @@ def test_imported_statement():
 	)
 	assert stmt.bank_name == "commonwealth"
 	assert len(stmt.transactions) == 2
+
+
+def test_bank_transaction_with_line_number():
+	"""Test bank transaction can track CSV line number for traceability."""
+	txn = BankTransaction(
+		date=date(2025, 11, 15),
+		description="PAYMENT RECEIVED",
+		debit=Decimal("0"),
+		credit=Decimal("100.00"),
+		balance=Decimal("1100.00"),
+		line_number=42,
+	)
+	assert txn.line_number == 42
+
+
+def test_bank_transaction_without_line_number_defaults_to_none():
+	"""Test bank transaction without line number defaults to None."""
+	txn = BankTransaction(
+		date=date(2025, 11, 15),
+		description="PAYMENT RECEIVED",
+		debit=Decimal("0"),
+		credit=Decimal("100.00"),
+	)
+	assert txn.line_number is None

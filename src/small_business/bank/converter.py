@@ -1,5 +1,6 @@
 """Convert bank transactions to accounting transactions."""
 
+import datetime
 from decimal import Decimal
 
 from small_business.bank.models import BankTransaction
@@ -11,6 +12,8 @@ def convert_to_transaction(
 	bank_account_code: str,
 	expense_account_code: str = "EXP-UNCLASSIFIED",
 	income_account_code: str = "INC-UNCLASSIFIED",
+	import_file: str | None = None,
+	import_date: datetime.date | None = None,
 ) -> Transaction:
 	"""Convert bank transaction to accounting transaction.
 
@@ -19,9 +22,11 @@ def convert_to_transaction(
 		bank_account_code: Account code for the bank account
 		expense_account_code: Default account code for expenses (debits)
 		income_account_code: Default account code for income (credits)
+		import_file: CSV filename for traceability (optional)
+		import_date: Date of import for traceability (optional)
 
 	Returns:
-		Transaction with double-entry journal entries
+		Transaction with double-entry journal entries and import metadata
 	"""
 	amount = abs(bank_txn.amount)
 
@@ -50,8 +55,24 @@ def convert_to_transaction(
 			JournalEntry(account_code=income_account_code, debit=Decimal("0"), credit=amount),
 		]
 
+	# Build import metadata if provided
+	import_metadata = {}
+	if import_file is not None or import_date is not None:
+		import_metadata = {
+			"import_source": "bank_import",
+			"import_file": import_file,
+			"import_date": import_date,
+			"import_line_number": bank_txn.line_number,
+			# Composite key for duplicate detection (transparent, not hashed - 4 fields)
+			"import_match_date": bank_txn.date,
+			"import_match_description": bank_txn.description,
+			"import_match_amount": bank_txn.amount,
+			"import_match_account": bank_account_code,
+		}
+
 	return Transaction(
 		date=bank_txn.date,
 		description=bank_txn.description,
 		entries=entries,
+		**import_metadata,
 	)

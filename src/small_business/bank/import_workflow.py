@@ -1,5 +1,6 @@
 """Bank import workflow orchestration."""
 
+import datetime
 from pathlib import Path
 
 from small_business.bank.converter import convert_to_transaction
@@ -59,17 +60,21 @@ def import_bank_statement(
 		existing_txns = storage.get_all_transactions(financial_year=fy)
 
 		# Convert to ImportedBankStatement format for duplicate checking
+		# ONLY include transactions for the current bank account being imported
 		if existing_txns:
-			# Group by date for statement format (simplified)
 			from small_business.bank.models import BankTransaction
 			from decimal import Decimal
 
 			bank_txns = []
 			for txn in existing_txns:
+				# Only check duplicates against transactions from THIS specific account
+				# Check if this transaction involves the current bank account
+				# using the composite key match field
+				if txn.import_match_account != bank_account_code:
+					continue  # Skip transactions from other accounts
+
 				# Reconstruct approximate bank transaction from accounting transaction
-				# This is simplified - just need for duplicate detection
 				# Determine if it's a debit or credit by checking which account is the bank account
-				# Bank account debit = money in, Bank account credit = money out
 				bank_entry = next(
 					(e for e in txn.entries if e.account_code == bank_account_code), None
 				)
@@ -84,9 +89,8 @@ def import_bank_statement(
 						debit = bank_entry.credit
 						credit = Decimal("0")
 				else:
-					# Fallback if bank account not found
-					debit = Decimal("0")
-					credit = Decimal("0")
+					# Skip if bank account not found in entries
+					continue
 
 				bank_txn = BankTransaction(
 					date=txn.date,
@@ -96,17 +100,20 @@ def import_bank_statement(
 				)
 				bank_txns.append(bank_txn)
 
-			existing_statements.append(
-				ImportedBankStatement(
-					bank_name=bank_name,
-					account_name=account_name,
-					transactions=bank_txns,
+			if bank_txns:  # Only add statement if we found matching transactions
+				existing_statements.append(
+					ImportedBankStatement(
+						bank_name=bank_name,
+						account_name=account_name,
+						transactions=bank_txns,
+					)
 				)
-			)
 
 	# Import transactions
 	imported = 0
 	duplicates = 0
+	import_date = datetime.date.today()
+	csv_filename = csv_path.name
 
 	for bank_txn in statement.transactions:
 		# Check duplicate
@@ -114,12 +121,14 @@ def import_bank_statement(
 			duplicates += 1
 			continue
 
-		# Convert to accounting transaction
+		# Convert to accounting transaction with traceability metadata
 		accounting_txn = convert_to_transaction(
 			bank_txn,
 			bank_account_code=bank_account_code,
 			expense_account_code=expense_account_code,
 			income_account_code=income_account_code,
+			import_file=csv_filename,
+			import_date=import_date,
 		)
 
 		# Save transaction

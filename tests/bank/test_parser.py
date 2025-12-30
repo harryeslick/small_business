@@ -84,3 +84,34 @@ def test_parse_csv_amount_column():
 
 	finally:
 		csv_path.unlink()
+
+def test_parse_csv_tracks_line_numbers():
+	"""Test that parser tracks CSV line numbers for traceability."""
+	csv_content = """Date,Description,Amount,Balance
+01/11/2025,Opening Balance,0.00,1000.00
+10/11/2025,WOOLWORTHS 1234,-45.50,954.50
+15/11/2025,PAYMENT RECEIVED,100.00,1054.50
+"""
+	with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+		f.write(csv_content)
+		csv_path = Path(f.name)
+
+	try:
+		bank_format = BankFormat(
+			name="test_bank",
+			date_column="Date",
+			description_column="Description",
+			amount_column="Amount",
+			balance_column="Balance",
+			date_format="%d/%m/%Y",
+		)
+
+		statement = parse_csv(csv_path, bank_format, "Test Bank", "Business Account")
+
+		# Check line numbers (line 2 is first data row after header at line 1)
+		assert statement.transactions[0].line_number == 2
+		assert statement.transactions[1].line_number == 3
+		assert statement.transactions[2].line_number == 4
+
+	finally:
+		csv_path.unlink()

@@ -14,6 +14,7 @@ class BankTransaction(BaseModel):
 	debit: Decimal = Field(ge=0, decimal_places=2)
 	credit: Decimal = Field(ge=0, decimal_places=2)
 	balance: Decimal | None = Field(default=None, decimal_places=2)
+	line_number: int | None = None  # CSV row number for traceability
 
 	@computed_field
 	@property

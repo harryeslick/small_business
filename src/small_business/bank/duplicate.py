@@ -1,24 +1,6 @@
 """Duplicate transaction detection."""
 
-import hashlib
-
 from small_business.bank.models import BankTransaction, ImportedBankStatement
-
-
-def generate_transaction_hash(txn: BankTransaction) -> str:
-	"""Generate hash for duplicate detection.
-
-	Hash is based on: date, description, amount (ignores balance).
-
-	Args:
-		txn: Bank transaction
-
-	Returns:
-		SHA256 hash string
-	"""
-	# Create hash from date, description, and amount
-	hash_input = f"{txn.date.isoformat()}|{txn.description}|{txn.amount}"
-	return hashlib.sha256(hash_input.encode()).hexdigest()
 
 
 def is_duplicate(
@@ -27,18 +9,28 @@ def is_duplicate(
 ) -> bool:
 	"""Check if transaction is a duplicate.
 
+	Uses direct field comparison (date, description, amount) instead of hashing.
+	This provides transparency, interoperability, and debuggability.
+
+	NOTE: The account context is handled by the caller - existing_statements should
+	only contain transactions from the same account being imported.
+
 	Args:
 		txn: Transaction to check
-		existing_statements: Previously imported statements
+		existing_statements: Previously imported statements (filtered to same account by caller)
 
 	Returns:
 		True if transaction already exists
 	"""
-	txn_hash = generate_transaction_hash(txn)
-
 	for stmt in existing_statements:
 		for existing_txn in stmt.transactions:
-			if generate_transaction_hash(existing_txn) == txn_hash:
+			# Direct comparison of the three key fields
+			# (account filtering happens in import_workflow before calling this function)
+			if (
+				existing_txn.date == txn.date
+				and existing_txn.description == txn.description
+				and existing_txn.amount == txn.amount
+			):
 				return True
 
 	return False
