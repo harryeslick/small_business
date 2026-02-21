@@ -1,6 +1,6 @@
 """Tests for Quote model."""
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -86,10 +86,11 @@ def test_quote_status_draft():
 	"""Test quote status is DRAFT when not sent."""
 	from small_business.models.enums import QuoteStatus
 
+	today = date.today()
 	quote = Quote(
 		client_id="Test Client",
-		date_created=date(2025, 11, 15),
-		date_valid_until=date(2025, 12, 15),
+		date_created=today,
+		date_valid_until=today + timedelta(days=30),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert quote.status == QuoteStatus.DRAFT
@@ -100,11 +101,12 @@ def test_quote_status_sent():
 	"""Test quote status is SENT when sent but not accepted/rejected."""
 	from small_business.models.enums import QuoteStatus
 
+	today = date.today()
 	quote = Quote(
 		client_id="Test Client",
-		date_created=date(2025, 11, 15),
-		date_sent=date(2025, 11, 16),
-		date_valid_until=date(2025, 12, 15),
+		date_created=today - timedelta(days=1),
+		date_sent=today,
+		date_valid_until=today + timedelta(days=30),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert quote.status == QuoteStatus.SENT

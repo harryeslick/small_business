@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.balance_sheet import generate_balance_sheet
+from small_business.reports.models import BalanceSheetReport
 from small_business.storage import StorageRegistry
 
 
@@ -63,16 +64,18 @@ def test_generate_balance_sheet(tmp_path):
 		as_of_date=date(2025, 11, 30),
 	)
 
+	assert isinstance(report, BalanceSheetReport)
+
 	# Check assets: Bank (10000 - 5000 + 3000) + Equipment (5000) = 13000
-	assert report["total_assets"] == Decimal("13000.00")
-	assert report["assets"]["Bank Cheque"]["balance"] == Decimal("8000.00")
-	assert report["assets"]["Equipment"]["balance"] == Decimal("5000.00")
+	assert report.total_assets == Decimal("13000.00")
+	assert report.assets["Bank Cheque"].balance == Decimal("8000.00")
+	assert report.assets["Equipment"].balance == Decimal("5000.00")
 
 	# Check liabilities: Loan = 3000
-	assert report["total_liabilities"] == Decimal("3000.00")
+	assert report.total_liabilities == Decimal("3000.00")
 
 	# Check equity: 10000
-	assert report["total_equity"] == Decimal("10000.00")
+	assert report.total_equity == Decimal("10000.00")
 
 	# Accounting equation: Assets = Liabilities + Equity
-	assert report["total_assets"] == report["total_liabilities"] + report["total_equity"]
+	assert report.total_assets == report.total_liabilities + report.total_equity

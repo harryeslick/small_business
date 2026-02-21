@@ -5,9 +5,20 @@ All data is loaded into memory at initialization and persisted incrementally to 
 """
 
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import Client, Invoice, Quote, Settings, Transaction, get_financial_year
+from small_business.models import (
+	BankFormats,
+	ChartOfAccounts,
+	Client,
+	Invoice,
+	Job,
+	Quote,
+	Settings,
+	Transaction,
+	get_financial_year,
+)
 from small_business.storage.paths import get_financial_year_dir
 
 
@@ -43,12 +54,16 @@ class StorageRegistry:
 		self._clients: dict[str, Client] = {}  # normalized_id -> Client
 		self._quotes: dict[tuple[str, int], Quote] = {}  # (id, version) -> Quote
 		self._invoices: dict[tuple[str, int], Invoice] = {}  # (id, version) -> Invoice
+		self._jobs: dict[tuple[str, int], Job] = {}  # (id, version) -> Job
 		self._transactions: dict[tuple[str, date], Transaction] = {}  # (id, date) -> Transaction
 		self._settings: Settings | None = None
+		self._bank_formats: BankFormats | None = None
+		self._chart_of_accounts: ChartOfAccounts | None = None
 
 		# Latest version tracking for versioned entities
 		self._latest_quotes: dict[str, int] = {}  # quote_id -> latest_version
 		self._latest_invoices: dict[str, int] = {}  # invoice_id -> latest_version
+		self._latest_jobs: dict[str, int] = {}  # job_id -> latest_version
 
 		# Load all data from disk
 		self._load_all_data()
@@ -58,8 +73,11 @@ class StorageRegistry:
 		self._load_clients()
 		self._load_quotes()
 		self._load_invoices()
+		self._load_jobs()
 		self._load_transactions()
 		self._load_settings()
+		self._load_bank_formats()
+		self._load_chart_of_accounts()
 
 	def reload(self) -> None:
 		"""Reload all data from disk (discard in-memory changes).
@@ -70,10 +88,14 @@ class StorageRegistry:
 		self._clients.clear()
 		self._quotes.clear()
 		self._invoices.clear()
+		self._jobs.clear()
 		self._transactions.clear()
 		self._latest_quotes.clear()
 		self._latest_invoices.clear()
+		self._latest_jobs.clear()
 		self._settings = None
+		self._bank_formats = None
+		self._chart_of_accounts = None
 
 		self._load_all_data()
 
@@ -287,23 +309,8 @@ class StorageRegistry:
 		return quotes_dir / f"{quote_id}_v{version}.json"
 
 	def _parse_quote_filename(self, filename: str) -> tuple[str, int]:
-		"""Parse quote filename to extract ID and version.
-
-		Args:
-			filename: Filename like "Q-20251123-001_v2.json"
-
-		Returns:
-			Tuple of (quote_id, version)
-		"""
-		# Remove .json extension
-		name = filename.removesuffix(".json")
-
-		# Split on last _v
-		parts = name.rsplit("_v", 1)
-		quote_id = parts[0]
-		version = int(parts[1])
-
-		return quote_id, version
+		"""Parse quote filename to extract ID and version."""
+		return self._parse_versioned_filename(filename)
 
 	# Invoice Operations
 
@@ -422,11 +429,124 @@ class StorageRegistry:
 
 	def _parse_invoice_filename(self, filename: str) -> tuple[str, int]:
 		"""Parse invoice filename to extract ID and version."""
-		name = filename.removesuffix(".json")
-		parts = name.rsplit("_v", 1)
-		invoice_id = parts[0]
-		version = int(parts[1])
-		return invoice_id, version
+		return self._parse_versioned_filename(filename)
+
+	# Job Operations
+
+	def save_job(self, job: Job) -> None:
+		"""Save job as new version.
+
+		Args:
+			job: Job to save
+		"""
+		version = self._get_next_job_version(job.job_id)
+
+		self._jobs[(job.job_id, version)] = job
+		self._latest_jobs[job.job_id] = version
+
+		filepath = self._get_job_path(job.job_id, job.date_accepted, version)
+		filepath.parent.mkdir(parents=True, exist_ok=True)
+		filepath.write_text(job.model_dump_json(indent=2))
+
+	def get_job(self, job_id: str, date: date, version: int | None = None) -> Job:
+		"""Get job by ID and optional version (defaults to latest).
+
+		Args:
+			job_id: Job identifier
+			date: Job date (for financial year organization)
+			version: Specific version to load (None = latest)
+
+		Returns:
+			Job matching the ID and version
+
+		Raises:
+			FileNotFoundError: If job or version not found
+		"""
+		if version is None:
+			version = self._latest_jobs.get(job_id)
+			if version is None:
+				raise FileNotFoundError(f"Job not found: {job_id}")
+
+		key = (job_id, version)
+		if key not in self._jobs:
+			raise FileNotFoundError(f"Job not found: {job_id} version {version}")
+
+		return self._jobs[key]
+
+	def get_job_versions(self, job_id: str) -> list[int]:
+		"""Get all version numbers for a job.
+
+		Args:
+			job_id: Job identifier
+
+		Returns:
+			Sorted list of version numbers
+		"""
+		return sorted([v for jid, v in self._jobs.keys() if jid == job_id])
+
+	def get_all_jobs(
+		self, latest_only: bool = True, financial_year: str | None = None
+	) -> list[Job]:
+		"""Get all jobs, optionally filtered.
+
+		Args:
+			latest_only: Only return latest version of each job (default: True)
+			financial_year: Filter by financial year string like "2025-26" (None = all years)
+
+		Returns:
+			List of jobs matching filters
+		"""
+		if latest_only:
+			jobs = [self._jobs[(jid, v)] for jid, v in self._latest_jobs.items()]
+		else:
+			jobs = list(self._jobs.values())
+
+		if financial_year is not None:
+			jobs = [j for j in jobs if get_financial_year(j.date_accepted) == financial_year]
+
+		return jobs
+
+	def update_job(self, job: Job) -> None:
+		"""Update existing job by saving a new version.
+
+		Args:
+			job: Job with updated data
+
+		Raises:
+			FileNotFoundError: If job not found
+		"""
+		if job.job_id not in self._latest_jobs:
+			raise FileNotFoundError(f"Job not found: {job.job_id}")
+
+		self.save_job(job)
+
+	def _load_jobs(self) -> None:
+		"""Load all job versions from all financial years."""
+		for fy_dir in self._get_all_fy_dirs():
+			jobs_dir = fy_dir / "jobs"
+			if not jobs_dir.exists():
+				continue
+
+			for filepath in jobs_dir.glob("*_v*.json"):
+				job = Job.model_validate_json(filepath.read_text())
+				job_id, version = self._parse_versioned_filename(filepath.name)
+
+				self._jobs[(job_id, version)] = job
+
+				if job_id not in self._latest_jobs or version > self._latest_jobs[job_id]:
+					self._latest_jobs[job_id] = version
+
+	def _get_next_job_version(self, job_id: str) -> int:
+		"""Get next version number for a job."""
+		if job_id in self._latest_jobs:
+			return self._latest_jobs[job_id] + 1
+		return 1
+
+	def _get_job_path(self, job_id: str, job_accepted_date: date, version: int) -> Path:
+		"""Get file path for a job version."""
+		fy_dir = get_financial_year_dir(self.data_dir, job_accepted_date)
+		jobs_dir = fy_dir / "jobs"
+		return jobs_dir / f"{job_id}_v{version}.json"
 
 	# Transaction Operations
 
@@ -507,19 +627,199 @@ class StorageRegistry:
 		"""
 		return (transaction_id, transaction_date) in self._transactions
 
-	def get_all_transactions(self, financial_year: str | None = None) -> list[Transaction]:
-		"""Get all transactions, optionally filtered by financial year.
+	def get_all_transactions(
+		self,
+		financial_year: str | None = None,
+		start_date: date | None = None,
+		end_date: date | None = None,
+	) -> list[Transaction]:
+		"""Get all transactions, optionally filtered.
 
 		Args:
 			financial_year: Filter by financial year string like "2025-26" (None = all years)
+			start_date: Include only transactions on or after this date
+			end_date: Include only transactions on or before this date
 
 		Returns:
-			List of transactions matching filter
+			List of transactions matching filters
 		"""
-		if financial_year is None:
-			return list(self._transactions.values())
+		txns = list(self._transactions.values())
 
-		return [t for t in self._transactions.values() if get_financial_year(t.date) == financial_year]
+		if financial_year is not None:
+			txns = [t for t in txns if get_financial_year(t.date) == financial_year]
+
+		if start_date is not None:
+			txns = [t for t in txns if t.date >= start_date]
+
+		if end_date is not None:
+			txns = [t for t in txns if t.date <= end_date]
+
+		return txns
+
+	def get_unclassified_transactions(
+		self, financial_year: str | None = None
+	) -> list[Transaction]:
+		"""Get transactions with any UNCLASSIFIED entry.
+
+		Args:
+			financial_year: Filter by financial year (None = all years)
+
+		Returns:
+			List of transactions with at least one UNCLASSIFIED account_code
+		"""
+		txns = self.get_all_transactions(financial_year=financial_year)
+		return [
+			t
+			for t in txns
+			if any("UNCLASSIFIED" in entry.account_code for entry in t.entries)
+		]
+
+	def get_transactions_by_account(
+		self,
+		account_code: str,
+		financial_year: str | None = None,
+		start_date: date | None = None,
+		end_date: date | None = None,
+	) -> list[Transaction]:
+		"""Get transactions that involve a specific account code.
+
+		Args:
+			account_code: Account code to filter by
+			financial_year: Filter by financial year (None = all years)
+			start_date: Include only transactions on or after this date
+			end_date: Include only transactions on or before this date
+
+		Returns:
+			List of transactions with at least one entry matching the account code
+		"""
+		txns = self.get_all_transactions(
+			financial_year=financial_year, start_date=start_date, end_date=end_date
+		)
+		return [
+			t for t in txns if any(e.account_code == account_code for e in t.entries)
+		]
+
+	def delete_transaction(self, transaction_id: str, transaction_date: date) -> None:
+		"""Delete a transaction from memory and disk.
+
+		Args:
+			transaction_id: Transaction identifier
+			transaction_date: Transaction date
+
+		Raises:
+			KeyError: If transaction not found
+		"""
+		key = (transaction_id, transaction_date)
+		if key not in self._transactions:
+			raise KeyError(f"Transaction not found: {transaction_id}")
+
+		del self._transactions[key]
+
+		# Rewrite JSONL file without the deleted transaction
+		txn_file = self._get_transaction_file(transaction_date)
+		remaining = [
+			t
+			for t in self._transactions.values()
+			if get_financial_year(t.date) == get_financial_year(transaction_date)
+		]
+		self._compact_transactions_for_file(txn_file, remaining)
+
+	def void_transaction(self, transaction_id: str, transaction_date: date) -> Transaction:
+		"""Void a transaction by creating a reversing entry.
+
+		Creates a new transaction with opposite debits/credits and a description
+		referencing the original. This is the preferred accounting practice over deletion.
+
+		Args:
+			transaction_id: Transaction identifier to void
+			transaction_date: Transaction date
+
+		Returns:
+			The new reversing transaction
+
+		Raises:
+			KeyError: If transaction not found
+		"""
+		from small_business.models import JournalEntry as JE
+
+		original = self.get_transaction(transaction_id, transaction_date)
+
+		reversed_entries = [
+			JE(
+				account_code=entry.account_code,
+				debit=entry.credit,
+				credit=entry.debit,
+			)
+			for entry in original.entries
+		]
+
+		void_txn = Transaction(
+			date=date.today(),
+			description=f"VOID: {original.description} (reverses {transaction_id})",
+			entries=reversed_entries,
+		)
+
+		self.save_transaction(void_txn)
+		return void_txn
+
+	def search_transactions(
+		self,
+		query: str | None = None,
+		account_code: str | None = None,
+		min_amount: Decimal | None = None,
+		max_amount: Decimal | None = None,
+		financial_year: str | None = None,
+		start_date: date | None = None,
+		end_date: date | None = None,
+	) -> list[Transaction]:
+		"""Search transactions with multiple filter criteria.
+
+		Args:
+			query: Case-insensitive substring match on description
+			account_code: Filter to transactions with this account code
+			min_amount: Minimum transaction amount (absolute value of any entry)
+			max_amount: Maximum transaction amount (absolute value of any entry)
+			financial_year: Filter by financial year
+			start_date: Include only transactions on or after this date
+			end_date: Include only transactions on or before this date
+
+		Returns:
+			List of transactions matching all provided criteria
+		"""
+		txns = self.get_all_transactions(
+			financial_year=financial_year, start_date=start_date, end_date=end_date
+		)
+
+		if query is not None:
+			query_lower = query.lower()
+			txns = [t for t in txns if query_lower in t.description.lower()]
+
+		if account_code is not None:
+			txns = [
+				t for t in txns if any(e.account_code == account_code for e in t.entries)
+			]
+
+		if min_amount is not None:
+			txns = [
+				t
+				for t in txns
+				if any(
+					e.debit >= min_amount or e.credit >= min_amount for e in t.entries
+				)
+			]
+
+		if max_amount is not None:
+			txns = [
+				t
+				for t in txns
+				if any(
+					(e.debit > 0 and e.debit <= max_amount)
+					or (e.credit > 0 and e.credit <= max_amount)
+					for e in t.entries
+				)
+			]
+
+		return txns
 
 	def _load_transactions(self) -> None:
 		"""Load all transactions from all financial years and compact per-year JSONL."""
@@ -608,6 +908,101 @@ class StorageRegistry:
 		"""Get path to settings JSON file."""
 		return self.data_dir / "settings.json"
 
+	# ChartOfAccounts Operations
+
+	def get_chart_of_accounts(self) -> ChartOfAccounts:
+		"""Get chart of accounts.
+
+		Returns:
+			ChartOfAccounts object
+
+		Raises:
+			FileNotFoundError: If chart of accounts not found
+		"""
+		if self._chart_of_accounts is None:
+			raise FileNotFoundError("Chart of accounts not found")
+		return self._chart_of_accounts
+
+	def save_chart_of_accounts(self, chart: ChartOfAccounts) -> None:
+		"""Save chart of accounts to memory and disk.
+
+		Args:
+			chart: ChartOfAccounts to save
+		"""
+		self._chart_of_accounts = chart
+
+		coa_file = self._get_chart_of_accounts_file()
+		coa_file.parent.mkdir(parents=True, exist_ok=True)
+		coa_file.write_text(chart.model_dump_json(indent=2))
+
+	def get_account_codes(self) -> list[str]:
+		"""Get list of all account code strings (account names).
+
+		Returns:
+			List of account name strings
+
+		Raises:
+			FileNotFoundError: If chart of accounts not found
+		"""
+		chart = self.get_chart_of_accounts()
+		return [acc.name for acc in chart.accounts]
+
+	def _load_chart_of_accounts(self) -> None:
+		"""Load chart of accounts from disk."""
+		# Try JSON first (our save format)
+		json_file = self._get_chart_of_accounts_file()
+		if json_file.exists():
+			self._chart_of_accounts = ChartOfAccounts.model_validate_json(
+				json_file.read_text()
+			)
+			return
+
+		# Fall back to YAML config
+		yaml_file = self.data_dir / "config" / "chart_of_accounts.yaml"
+		if yaml_file.exists():
+			self._chart_of_accounts = ChartOfAccounts.from_yaml(yaml_file)
+
+	def _get_chart_of_accounts_file(self) -> Path:
+		"""Get path to chart of accounts JSON file."""
+		return self.data_dir / "config" / "chart_of_accounts.json"
+
+	# BankFormats Operations
+
+	def get_bank_formats(self) -> BankFormats:
+		"""Get bank format configurations.
+
+		Returns:
+			BankFormats object
+
+		Raises:
+			FileNotFoundError: If bank formats not found
+		"""
+		if self._bank_formats is None:
+			raise FileNotFoundError("Bank formats not found")
+		return self._bank_formats
+
+	def save_bank_formats(self, bank_formats: BankFormats) -> None:
+		"""Save bank formats to memory and disk.
+
+		Args:
+			bank_formats: BankFormats to save
+		"""
+		self._bank_formats = bank_formats
+
+		bf_file = self._get_bank_formats_file()
+		bf_file.parent.mkdir(parents=True, exist_ok=True)
+		bf_file.write_text(bank_formats.model_dump_json(indent=2))
+
+	def _load_bank_formats(self) -> None:
+		"""Load bank formats from disk."""
+		bf_file = self._get_bank_formats_file()
+		if bf_file.exists():
+			self._bank_formats = BankFormats.model_validate_json(bf_file.read_text())
+
+	def _get_bank_formats_file(self) -> Path:
+		"""Get path to bank formats JSON file."""
+		return self.data_dir / "config" / "bank_formats.json"
+
 	# Utility Methods
 
 	def _get_all_fy_dirs(self) -> list[Path]:
@@ -623,3 +1018,16 @@ class StorageRegistry:
 		import re
 		fy_pattern = re.compile(r"^\d{4}-\d{2}$")
 		return sorted([d for d in self.data_dir.iterdir() if d.is_dir() and fy_pattern.match(d.name)])
+
+	def _parse_versioned_filename(self, filename: str) -> tuple[str, int]:
+		"""Parse versioned filename to extract ID and version.
+
+		Args:
+			filename: Filename like "Q-20251123-001_v2.json"
+
+		Returns:
+			Tuple of (entity_id, version)
+		"""
+		name = filename.removesuffix(".json")
+		parts = name.rsplit("_v", 1)
+		return parts[0], int(parts[1])

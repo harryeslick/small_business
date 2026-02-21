@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from small_business.models import AccountType, ChartOfAccounts, get_financial_year
+from small_business.reports.models import BASReport
 from small_business.storage import StorageRegistry
 
 
@@ -31,7 +32,7 @@ def generate_bas_report(
 	data_dir: Path,
 	start_date: date,
 	end_date: date,
-) -> dict:
+) -> BASReport:
 	"""Generate BAS/GST report.
 
 	Args:
@@ -92,12 +93,12 @@ def generate_bas_report(
 	# Net GST = GST collected - GST paid
 	net_gst = gst_on_sales - gst_on_purchases
 
-	return {
-		"start_date": start_date,
-		"end_date": end_date,
-		"total_sales": total_sales,
-		"gst_on_sales": gst_on_sales,
-		"total_purchases": total_purchases,
-		"gst_on_purchases": gst_on_purchases,
-		"net_gst": net_gst,
-	}
+	return BASReport(
+		start_date=start_date,
+		end_date=end_date,
+		total_sales=total_sales,
+		gst_on_sales=gst_on_sales,
+		total_purchases=total_purchases,
+		gst_on_purchases=gst_on_purchases,
+		net_gst=net_gst,
+	)

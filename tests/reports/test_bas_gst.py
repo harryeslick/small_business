@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
 from small_business.reports.bas_gst import generate_bas_report
+from small_business.reports.models import BASReport
 from small_business.storage import StorageRegistry
 
 
@@ -67,17 +68,19 @@ def test_generate_bas_report(tmp_path):
 		end_date=date(2025, 11, 30),
 	)
 
+	assert isinstance(report, BASReport)
+
 	# Total sales: $110 + $220 = $330
-	assert report["total_sales"] == Decimal("330.00")
+	assert report.total_sales == Decimal("330.00")
 
 	# GST on sales: 330 × 1/11 = $30
-	assert report["gst_on_sales"] == Decimal("30.00")
+	assert report.gst_on_sales == Decimal("30.00")
 
 	# Total purchases: $55
-	assert report["total_purchases"] == Decimal("55.00")
+	assert report.total_purchases == Decimal("55.00")
 
 	# GST on purchases: 55 × 1/11 = $5
-	assert report["gst_on_purchases"] == Decimal("5.00")
+	assert report.gst_on_purchases == Decimal("5.00")
 
 	# Net GST: $30 - $5 = $25 (owed to ATO)
-	assert report["net_gst"] == Decimal("25.00")
+	assert report.net_gst == Decimal("25.00")

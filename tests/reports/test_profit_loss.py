@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from small_business.models import Account, AccountType, ChartOfAccounts, JournalEntry, Transaction
+from small_business.reports.models import ProfitLossReport
 from small_business.reports.profit_loss import generate_profit_loss_report
 from small_business.storage import StorageRegistry
 
@@ -67,15 +68,17 @@ def test_generate_profit_loss_report(tmp_path):
 		end_date=date(2025, 11, 30),
 	)
 
+	assert isinstance(report, ProfitLossReport)
+
 	# Check totals
-	assert report["total_income"] == Decimal("1000.00")
-	assert report["total_expenses"] == Decimal("800.00")
-	assert report["net_profit"] == Decimal("200.00")
+	assert report.total_income == Decimal("1000.00")
+	assert report.total_expenses == Decimal("800.00")
+	assert report.net_profit == Decimal("200.00")
 
 	# Check breakdown
-	assert len(report["income"]) == 1
-	assert report["income"]["Sales"]["balance"] == Decimal("1000.00")
+	assert len(report.income) == 1
+	assert report.income["Sales"].balance == Decimal("1000.00")
 
-	assert len(report["expenses"]) == 2
-	assert report["expenses"]["Supplies"]["balance"] == Decimal("300.00")
-	assert report["expenses"]["Rent"]["balance"] == Decimal("500.00")
+	assert len(report.expenses) == 2
+	assert report.expenses["Supplies"].balance == Decimal("300.00")
+	assert report.expenses["Rent"].balance == Decimal("500.00")

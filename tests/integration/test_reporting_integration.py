@@ -100,9 +100,9 @@ def test_complete_reporting_workflow(tmp_path):
 	)
 
 	# Verify P&L
-	assert pl_report["total_income"] == Decimal("1100.00")
-	assert pl_report["total_expenses"] == Decimal("770.00")  # 550 + 220
-	assert pl_report["net_profit"] == Decimal("330.00")
+	assert pl_report.total_income == Decimal("1100.00")
+	assert pl_report.total_expenses == Decimal("770.00")  # 550 + 220
+	assert pl_report.net_profit == Decimal("330.00")
 
 	# Export P&L to CSV
 	pl_csv = reports_dir / "profit_loss.csv"
@@ -118,8 +118,8 @@ def test_complete_reporting_workflow(tmp_path):
 
 	# Verify Balance Sheet
 	# Bank: 10000 + 1100 - 550 - 220 = 10330
-	assert bs_report["total_assets"] == Decimal("10330.00")
-	assert bs_report["total_equity"] == Decimal("10000.00")
+	assert bs_report.total_assets == Decimal("10330.00")
+	assert bs_report.total_equity == Decimal("10000.00")
 
 	# Export Balance Sheet to CSV
 	bs_csv = reports_dir / "balance_sheet.csv"
@@ -136,13 +136,13 @@ def test_complete_reporting_workflow(tmp_path):
 
 	# Verify BAS
 	# Sales: 1100, GST = 1100 × 1/11 = 100
-	assert bas_report["gst_on_sales"] == Decimal("100.00")
+	assert bas_report.gst_on_sales == Decimal("100.00")
 
 	# Purchases: 550 + 220 = 770, GST = 770 × 1/11 = 70
-	assert bas_report["gst_on_purchases"] == Decimal("70.00")
+	assert bas_report.gst_on_purchases == Decimal("70.00")
 
 	# Net GST: 100 - 70 = 30 (owed to ATO)
-	assert bas_report["net_gst"] == Decimal("30.00")
+	assert bas_report.net_gst == Decimal("30.00")
 
 	# Export BAS to CSV
 	bas_csv = reports_dir / "bas_report.csv"

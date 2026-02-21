@@ -1,6 +1,6 @@
 """Tests for Invoice model."""
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -107,10 +107,11 @@ def test_invoice_status_draft():
 
 def test_invoice_status_sent():
 	"""Test invoice status is SENT when issued but not paid."""
+	today = date.today()
 	invoice = Invoice(
 		client_id="Test Client",
-		date_issued=date(2025, 11, 15),
-		date_due=date(2025, 12, 15),
+		date_issued=today - timedelta(days=1),
+		date_due=today + timedelta(days=30),
 		line_items=[LineItem(description="Test", quantity=Decimal("1"), unit_price=Decimal("100"))],
 	)
 	assert invoice.status == InvoiceStatus.SENT

@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from small_business.models import AccountType, ChartOfAccounts, get_financial_year
+from small_business.reports.models import AccountBalance, ProfitLossReport
 from small_business.storage import StorageRegistry
 
 
@@ -13,7 +14,7 @@ def generate_profit_loss_report(
 	data_dir: Path,
 	start_date: date,
 	end_date: date,
-) -> dict:
+) -> ProfitLossReport:
 	"""Generate Profit & Loss report.
 
 	Args:
@@ -45,10 +46,10 @@ def generate_profit_loss_report(
 						balance += entry.credit - entry.debit
 
 			if balance > 0:
-				income_accounts[account.name] = {
-					"name": account.name,
-					"balance": balance,
-				}
+				income_accounts[account.name] = AccountBalance(
+					name=account.name,
+					balance=balance,
+				)
 				total_income += balance
 
 	# Calculate expenses by account
@@ -65,21 +66,21 @@ def generate_profit_loss_report(
 						balance += entry.debit - entry.credit
 
 			if balance > 0:
-				expense_accounts[account.name] = {
-					"name": account.name,
-					"balance": balance,
-				}
+				expense_accounts[account.name] = AccountBalance(
+					name=account.name,
+					balance=balance,
+				)
 				total_expenses += balance
 
 	# Calculate net profit
 	net_profit = total_income - total_expenses
 
-	return {
-		"start_date": start_date,
-		"end_date": end_date,
-		"income": income_accounts,
-		"total_income": total_income,
-		"expenses": expense_accounts,
-		"total_expenses": total_expenses,
-		"net_profit": net_profit,
-	}
+	return ProfitLossReport(
+		start_date=start_date,
+		end_date=end_date,
+		income=income_accounts,
+		total_income=total_income,
+		expenses=expense_accounts,
+		total_expenses=total_expenses,
+		net_profit=net_profit,
+	)
