@@ -1,6 +1,85 @@
-# small_business
+# Small Business Manager
 
-Small business accounting and job management system for Australian sole traders. Features double-entry accounting, bank statement imports with auto-classification, quote/job/invoice lifecycle management, financial reporting (Balance Sheet, P&L, BAS/GST), and DOCX document generation.
+Accounting and job management system for Australian sole traders, with a terminal interface (TUI) that runs in any terminal window. Features double-entry accounting, bank statement imports with auto-classification, quote/job/invoice lifecycle management, financial reporting (Balance Sheet, P&L, BAS/GST), and DOCX document generation.
+
+## Getting Started
+
+### Prerequisites
+
+You need **Python 3.13+** and **uv** (a fast Python package manager).
+
+**Install uv** (one-time setup — copy and paste into Terminal):
+
+On macOS/Linux:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+On Windows:
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+### Installation
+
+1. **Download or clone** this project to your computer
+2. Open **Terminal** (macOS) or **Command Prompt** (Windows)
+3. Navigate to the project folder:
+   ```bash
+   cd path/to/small_business
+   ```
+4. Install dependencies:
+   ```bash
+   uv sync
+   ```
+
+### Running the App
+
+**First time** (the setup wizard will guide you):
+```bash
+uv run small-business
+```
+
+**With an existing business folder:**
+```bash
+uv run small-business ~/Documents/MyBusiness
+```
+
+The app opens in your terminal. Use your keyboard to navigate — no mouse needed.
+
+### Quick Reference
+
+| Key | Action |
+|-----|--------|
+| `1`–`9` | Switch between screens (Dashboard, Clients, Quotes, etc.) |
+| `Ctrl+P` | Open command palette (search for anything) |
+| `?` | Show keyboard shortcuts |
+| `Ctrl+Q` | Quit |
+
+### Screens
+
+| # | Screen | What it does |
+|---|--------|-------------|
+| 1 | **Dashboard** | Financial health overview, action items, recent activity |
+| 2 | **Clients** | Add and manage your clients |
+| 3 | **Quotes** | Create quotes, send to clients, accept into jobs |
+| 4 | **Jobs** | Track job progress from scheduled to completed |
+| 5 | **Invoices** | Issue invoices, record payments |
+| 6 | **Transactions** | Browse and search all accounting transactions |
+| 7 | **Bank Import** | Import bank CSV statements (ANZ, CommBank, etc.) |
+| 8 | **Classify** | Categorise imported transactions (with smart suggestions) |
+| 9 | **Reports** | Balance Sheet, Profit & Loss, BAS/GST reports |
+
+### Typical Workflow
+
+1. **Import** your bank statement CSV (screen 7)
+2. **Classify** the new transactions (screen 8) — the system learns your rules over time
+3. **Create a quote** for a client (screen 3), send it, and accept it into a job
+4. **Track the job** (screen 4), complete it, and generate an invoice
+5. **Record payment** when the client pays (screen 5)
+6. **Generate reports** at BAS time (screen 9) — export to CSV for your accountant
+
+---
 
 ## Package Architecture
 
@@ -181,11 +260,45 @@ small_business/                         # Root package
 │   ├── → export_profit_loss_csv()      # Export P&L to CSV
 │   └── → export_bas_csv()              # Export BAS to CSV
 │
-└── documents/                          # Document generation (DOCX)
-    ├── → render_quote_context()        # Build template context for quote
-    ├── → render_invoice_context()      # Build template context for invoice
-    ├── → generate_quote_document() ⭐  # Generate quote DOCX (HIGH-LEVEL)
-    └── → generate_invoice_document() ⭐ # Generate invoice DOCX (HIGH-LEVEL)
+├── documents/                          # Document generation (DOCX)
+│   ├── → render_quote_context()        # Build template context for quote
+│   ├── → render_invoice_context()      # Build template context for invoice
+│   ├── → generate_quote_document() ⭐  # Generate quote DOCX (HIGH-LEVEL)
+│   └── → generate_invoice_document() ⭐ # Generate invoice DOCX (HIGH-LEVEL)
+│
+└── tui/                                # Terminal User Interface (Textual)
+    ├── app.py                          # SmallBusinessApp — main application class
+    ├── __main__.py                     # Entry point (small-business CLI command)
+    ├── commands.py                     # Command palette providers (navigation, actions, entity search)
+    ├── utils.py                        # Formatting helpers (currency, dates, financial year)
+    ├── screens/                        # One screen per business function
+    │   ├── dashboard.py                # Financial health overview + action items
+    │   ├── clients.py                  # Client management (list + detail)
+    │   ├── quotes.py                   # Quote lifecycle (draft → sent → accepted)
+    │   ├── jobs.py                     # Job tracking (scheduled → completed → invoiced)
+    │   ├── invoices.py                 # Invoice management + payment recording
+    │   ├── transactions.py             # Transaction browser with search/void/delete
+    │   ├── bank_import.py              # Bank CSV import with preview + progress
+    │   ├── classification.py           # Batch transaction classification with suggestions
+    │   ├── reports.py                  # Balance Sheet, P&L, BAS report generation
+    │   └── settings.py                 # Business details, bank formats, chart of accounts
+    ├── widgets/                        # Reusable custom widgets
+    │   ├── currency.py                 # CurrencyDisplay — colour-coded AUD amounts
+    │   ├── status_badge.py             # StatusBadge — colour-coded entity statuses
+    │   ├── account_selector.py         # AccountSelector — fuzzy search for account codes
+    │   ├── sparkline_panel.py          # SparklinePanel — Unicode bar chart
+    │   ├── notification_bar.py         # NotificationBar — rotating alerts
+    │   └── pipeline.py                 # EntityPipeline — quote/job/invoice pipeline
+    ├── modals/                         # Modal dialogs
+    │   ├── setup_wizard.py             # First-time business setup
+    │   ├── confirm.py                  # Yes/No confirmation dialog
+    │   ├── client_form.py              # Client create/edit form
+    │   └── line_item_editor.py         # Quote/invoice line item editor
+    └── styles/                         # TCSS stylesheets
+        ├── app.tcss                    # Global theme + status badges + money colours
+        ├── dashboard.tcss              # Dashboard layout
+        ├── bank_import.tcss            # Bank import screen
+        └── classification.tcss         # Classification screen
 
 Legend:
   ● = Data model/class (Pydantic)
@@ -262,11 +375,13 @@ graph LR
 
 ## Project Organization
 
-- **[Copier](https://copier.readthedocs.io/)** - For templating and project generation
-- **[uv](https://github.com/astral-sh/uv)** - For package and dependency management
-- **[MkDocs](https://www.mkdocs.org/)** - For documentation with GitHub Pages deployment
-- **[pytest](https://docs.pytest.org/)** - For testing with code coverage via pytest-cov
-- **[pre-commit](https://pre-commit.com/)** - For enforcing code quality with ruff and codespell
+- **[Textual](https://textual.textualize.io/)** - Terminal user interface framework (the app you interact with)
+- **[uv](https://github.com/astral-sh/uv)** - Package and dependency management
+- **[Pydantic](https://docs.pydantic.dev/)** - Data validation and business models
+- **[pandas](https://pandas.pydata.org/)** - Bank CSV import and report export
+- **[pytest](https://docs.pytest.org/)** - Testing with code coverage (277 tests)
+- **[MkDocs](https://www.mkdocs.org/)** - Documentation with GitHub Pages deployment
+- **[pre-commit](https://pre-commit.com/)** - Code quality enforcement with ruff and codespell
 
 
 ## Development Setup

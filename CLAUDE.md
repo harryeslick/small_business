@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Small business account and job management system for Australian sole traders, built with Python 3.13+. The backend is feature-complete with models, storage, bank imports, classification, workflows, reports, and document generation. 277 tests passing. Next phase: Textual TUI frontend.
+Small business accounting and job management system for Australian sole traders, built with Python 3.13+. The backend is feature-complete with models, storage, bank imports, classification, workflows, reports, and document generation (277 tests passing). The Textual TUI frontend exposes all backend capabilities through 10 screens, with a command palette, keyboard-driven navigation, and custom widgets.
 
 ## Development Commands
 
@@ -80,6 +80,15 @@ src/small_business/     # Main package source code
   documents/            # DOCX document generation via Jinja2 templates
   workflows.py          # Entity lifecycle transitions (Quote→Job→Invoice)
   init_business.py      # Business directory structure initialization
+  tui/                  # Textual TUI frontend (10 screens + widgets + modals)
+    app.py              # SmallBusinessApp — main App class, StorageRegistry, reactive counts
+    __main__.py         # CLI entry point (`uv run small-business [DATA_DIR]`)
+    commands.py         # Command palette providers (NavigationProvider, ActionProvider, EntityProvider)
+    utils.py            # Formatting helpers (currency, dates, financial year)
+    screens/            # One file per screen (dashboard, clients, quotes, jobs, invoices, etc.)
+    widgets/            # Custom widgets (CurrencyDisplay, SparklinePanel, NotificationBar, etc.)
+    modals/             # Modal dialogs (setup wizard, confirm, client form, line item editor)
+    styles/             # TCSS stylesheets (app theme, dashboard layout, etc.)
 docs/                   # MkDocs documentation
   notebooks/            # Jupyter notebooks for examples (executed in docs)
   api_docs/             # API reference documentation
@@ -95,6 +104,7 @@ tests/                  # pytest test suite (277 tests)
 ```
 
 ### Key Technologies
+- **Textual 8.0**: Terminal UI framework — 10 screens, command palette, custom widgets, TCSS styling
 - **uv**: Package and dependency management (replaces pip/poetry)
 - **Pydantic v2**: Data validation, modeling, and typed report return types
 - **pandas**: CSV/data manipulation for bank imports and report exports
@@ -152,6 +162,20 @@ Report generators return typed Pydantic models (not dicts):
 - `generate_bas_report()` → `BASReport`
 
 Report models are in `src/small_business/reports/models.py` and exported from `reports/__init__.py`.
+
+### TUI Frontend
+The Textual TUI (`src/small_business/tui/`) is a pure consumer of the backend APIs. Key patterns:
+
+- **Single shared StorageRegistry**: Instantiated once on `SmallBusinessApp`, accessed by all screens via `self.app.storage`
+- **Reactive counts**: `unclassified_count` and `overdue_count` on App trigger UI updates across screens
+- **Data refresh**: After any mutation, screens call `self.app.action_data_changed()` which reloads storage and updates reactive counts
+- **Screen registration**: `SCREENS` dict maps names to classes (lazy instantiation). Navigate with `app.switch_screen('name')` or number keys `1`–`9`
+- **Command palette**: Three providers — `NavigationProvider` (screen nav), `ActionProvider` (create/import/generate), `EntityProvider` (search clients/quotes/jobs/invoices by ID/name)
+- **TCSS styling**: Separate `.tcss` files in `styles/` for theme and layout. Semantic colour classes: `.money-positive`, `.money-negative`, `.status-overdue`, etc.
+- **Workflow integration**: Screens call `accept_quote_to_job()` and `complete_job_to_invoice()` then `storage.reload()` since workflow functions create their own StorageRegistry
+- **Console entry point**: `uv run small-business [DATA_DIR]` or `python -m small_business.tui [DATA_DIR]`
+
+**Known issue**: Textual 8.0.0's `run_test()` prints a `get_height` traceback during test cleanup — this is a Textual internal bug during widget measurement on shutdown, not a code issue. The app runs correctly at runtime.
 
 ## API Design Principles
 
