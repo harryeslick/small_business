@@ -4,45 +4,47 @@ Accounting and job management system for Australian sole traders, with a termina
 
 ## Getting Started
 
-### Prerequisites
+### Step 1: Install uv
 
-You need **Python 3.13+** and **uv** (a fast Python package manager).
+**uv** is a fast Python package manager. Copy and paste this into your terminal (one-time setup):
 
-**Install uv** (one-time setup — copy and paste into Terminal):
-
-On macOS/Linux:
+On macOS/Linux — open **Terminal** and run:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-On Windows:
+On Windows — open **PowerShell** and run:
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### Installation
+### Step 2: Install Small Business Manager
 
-1. **Download or clone** this project to your computer
-2. Open **Terminal** (macOS) or **Command Prompt** (Windows)
-3. Navigate to the project folder:
-   ```bash
-   cd path/to/small_business
-   ```
-4. Install dependencies:
-   ```bash
-   uv sync
-   ```
-
-### Running the App
-
-**First time** (the setup wizard will guide you):
 ```bash
-uv run small-business
+uv tool install small-business
 ```
 
-**With an existing business folder:**
+This installs the `small-business` command globally — you can run it from anywhere.
+
+### Step 3: Create your business
+
+Create a folder for your business, then run the setup wizard:
+
 ```bash
-uv run small-business ~/Documents/MyBusiness
+mkdir "My Business"
+cd "My Business"
+small-business init
+```
+
+The setup wizard will ask for your business name, ABN, and contact details. Your business data will be stored in this folder.
+
+### Step 4: Run the app
+
+From now on, just open your business folder and run:
+
+```bash
+cd "My Business"
+small-business
 ```
 
 The app opens in your terminal. Use your keyboard to navigate — no mouse needed.

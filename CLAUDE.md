@@ -173,7 +173,9 @@ The Textual TUI (`src/small_business/tui/`) is a pure consumer of the backend AP
 - **Command palette**: Three providers — `NavigationProvider` (screen nav), `ActionProvider` (create/import/generate), `EntityProvider` (search clients/quotes/jobs/invoices by ID/name)
 - **TCSS styling**: Separate `.tcss` files in `styles/` for theme and layout. Semantic colour classes: `.money-positive`, `.money-negative`, `.status-overdue`, etc.
 - **Workflow integration**: Screens call `accept_quote_to_job()` and `complete_job_to_invoice()` then `storage.reload()` since workflow functions create their own StorageRegistry
-- **Console entry point**: `uv run small-business [DATA_DIR]` or `python -m small_business.tui [DATA_DIR]`
+- **Console entry point**: `small-business` (from within business dir), `small-business init` (setup wizard), or `small-business /path` (explicit dir)
+- **Global install**: `uv tool install small-business` — installs as a system-wide CLI tool
+- **Business detection**: `_is_business_dir()` checks for `config/settings.json` or `settings.json`
 
 **Known issue**: Textual 8.0.0's `run_test()` prints a `get_height` traceback during test cleanup — this is a Textual internal bug during widget measurement on shutdown, not a code issue. The app runs correctly at runtime.
 

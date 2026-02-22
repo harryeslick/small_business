@@ -67,9 +67,10 @@ class SmallBusinessApp(App):
 	unclassified_count: reactive[int] = reactive(0)
 	overdue_count: reactive[int] = reactive(0)
 
-	def __init__(self, data_dir: Path | None = None) -> None:
+	def __init__(self, data_dir: Path | None = None, init_dir: Path | None = None) -> None:
 		super().__init__()
 		self.data_dir = data_dir
+		self.init_dir = init_dir
 		self.storage: StorageRegistry | None = None
 
 	def on_mount(self) -> None:
@@ -78,10 +79,13 @@ class SmallBusinessApp(App):
 			self._init_storage(self.data_dir)
 			self.push_screen("dashboard")
 		else:
-			# Show setup wizard
+			# Show setup wizard — init_dir tells it which folder to initialize
 			from small_business.tui.modals.setup_wizard import SetupWizardModal
 
-			self.push_screen(SetupWizardModal(), callback=self._on_setup_complete)
+			self.push_screen(
+				SetupWizardModal(init_dir=self.init_dir),
+				callback=self._on_setup_complete,
+			)
 
 	def _on_setup_complete(self, result: Path | None) -> None:
 		"""Handle setup wizard completion."""

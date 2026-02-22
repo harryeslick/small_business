@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import shutil
+from importlib.resources import files
 from pathlib import Path
 
 from textual.app import ComposeResult
@@ -9,12 +11,15 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Static
 
-from small_business.init_business import init_business
 from small_business.models import Settings
 
 
 class SetupWizardModal(ModalScreen[Path | None]):
 	"""Modal wizard for first-time business setup.
+
+	When init_dir is provided, initializes that directory in place
+	(for the `small-business init` workflow). Otherwise, creates a
+	subdirectory using init_business().
 
 	Returns the created data_dir Path on success, or None if cancelled.
 	"""
@@ -72,6 +77,10 @@ class SetupWizardModal(ModalScreen[Path | None]):
 	}
 	"""
 
+	def __init__(self, init_dir: Path | None = None) -> None:
+		super().__init__()
+		self._init_dir = init_dir
+
 	def compose(self) -> ComposeResult:
 		with Vertical(id="wizard-dialog"):
 			yield Static("Small Business Manager", id="wizard-title")
@@ -97,12 +106,10 @@ class SetupWizardModal(ModalScreen[Path | None]):
 				yield Label("Business Address (optional)", classes="wizard-label")
 				yield Input(placeholder="e.g. 123 Main St, Sydney NSW 2000", id="business-address")
 
-			with Vertical(classes="wizard-field"):
-				yield Label("Data Directory", classes="wizard-label")
-				yield Input(
-					placeholder="Where to store business data",
-					value=str(Path.cwd()),
-					id="data-dir",
+			if self._init_dir:
+				yield Static(
+					f"  Business folder: [bold]{self._init_dir}[/]",
+					id="wizard-location",
 				)
 
 			yield Static("", id="wizard-error")
@@ -119,7 +126,7 @@ class SetupWizardModal(ModalScreen[Path | None]):
 			self._create_business()
 
 	def _create_business(self) -> None:
-		"""Validate inputs and create the business directory."""
+		"""Validate inputs and create the business."""
 		name = self.query_one("#business-name", Input).value.strip()
 		if not name:
 			self.query_one("#wizard-error", Static).update("Business name is required.")
@@ -133,11 +140,15 @@ class SetupWizardModal(ModalScreen[Path | None]):
 			business_address=self.query_one("#business-address", Input).value.strip(),
 		)
 
-		data_dir_str = self.query_one("#data-dir", Input).value.strip()
-		base_path = Path(data_dir_str)
-
 		try:
-			created_path = init_business(settings, path=base_path)
+			if self._init_dir:
+				# Initialize the given directory in place
+				created_path = _init_business_in_place(settings, self._init_dir)
+			else:
+				# Legacy mode: create a subdirectory
+				from small_business.init_business import init_business
+
+				created_path = init_business(settings)
 			self.dismiss(created_path)
 		except FileExistsError:
 			self.query_one("#wizard-error", Static).update(
@@ -145,3 +156,33 @@ class SetupWizardModal(ModalScreen[Path | None]):
 			)
 		except Exception as e:
 			self.query_one("#wizard-error", Static).update(f"Error: {e}")
+
+
+def _init_business_in_place(settings: Settings, path: Path) -> Path:
+	"""Initialize a business directly in the given directory (no subdirectory).
+
+	Creates the standard business directory structure inside `path`.
+	"""
+	path.mkdir(parents=True, exist_ok=True)
+
+	for subdir in (
+		"clients",
+		"quotes",
+		"invoices",
+		"jobs",
+		"transactions",
+		"receipts",
+		"reports",
+		"config",
+	):
+		(path / subdir).mkdir(exist_ok=True)
+
+	# Save settings
+	settings_path = path / "config" / "settings.json"
+	settings_path.write_text(settings.model_dump_json(indent=2))
+
+	# Copy default chart of accounts
+	default_coa = files("small_business.data").joinpath("default_chart_of_accounts.yaml")
+	shutil.copy(str(default_coa), path / "config" / "chart_of_accounts.yaml")
+
+	return path
