@@ -1,0 +1,57 @@
+/* Dashboard Screen Styles */
+
+#dashboard-content {
+	padding: 1;
+}
+
+#financial-health {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#health-metrics {
+	height: auto;
+}
+
+.metric-column {
+	width: 1fr;
+	height: auto;
+	padding: 0 2;
+}
+
+.metric-label {
+	color: $text-muted;
+	text-style: bold;
+}
+
+#dashboard-middle {
+	height: 1fr;
+	margin-bottom: 1;
+}
+
+#action-items {
+	width: 40%;
+	height: 100%;
+}
+
+#action-items-list {
+	height: auto;
+}
+
+#recent-activity {
+	width: 60%;
+	height: 100%;
+}
+
+#recent-txns-table {
+	height: auto;
+	max-height: 14;
+}
+
+#pipeline {
+	height: auto;
+}
+
+#pipeline-summary {
+	height: auto;
+}

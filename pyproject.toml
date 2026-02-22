@@ -15,7 +15,11 @@ dependencies = [
     "pydantic[email]>=2.0.0",
     "docxtpl>=0.20.2",
     "pyyaml>=6.0.3",
+    "textual>=1.0.0",
 ]
+
+[project.scripts]
+small-business = "small_business.tui.__main__:main"
 
 [dependency-groups]
 dev = [

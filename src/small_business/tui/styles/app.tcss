@@ -1,0 +1,159 @@
+/* Small Business Manager — Global Theme */
+
+/* ── Base Screen ──────────────────────────── */
+Screen {
+	background: $surface;
+}
+
+/* ── Header / Footer ─────────────────────── */
+Header {
+	dock: top;
+}
+
+Footer {
+	dock: bottom;
+}
+
+/* ── Status Badge Colours ────────────────── */
+.status-draft {
+	color: $text-muted;
+}
+
+.status-sent {
+	color: #2979ff;
+}
+
+.status-accepted,
+.status-paid {
+	color: #00c853;
+}
+
+.status-overdue {
+	color: #ff1744;
+	text-style: bold;
+}
+
+.status-expired,
+.status-cancelled {
+	color: $text-disabled;
+}
+
+.status-rejected {
+	color: #ff1744;
+}
+
+.status-scheduled {
+	color: #2979ff;
+}
+
+.status-in-progress {
+	color: #ffab00;
+}
+
+.status-completed {
+	color: #00c853;
+}
+
+.status-invoiced {
+	color: #00c853;
+	text-style: italic;
+}
+
+/* ── Money Colours ───────────────────────── */
+.money-positive {
+	color: #00c853;
+}
+
+.money-negative {
+	color: #ff1744;
+}
+
+.money-zero {
+	color: $text-muted;
+}
+
+/* ── Dashboard Panels ────────────────────── */
+.dashboard-panel {
+	border: solid $primary;
+	padding: 1 2;
+	margin: 0 1;
+	height: auto;
+}
+
+.dashboard-panel-title {
+	text-style: bold;
+	color: $text;
+	margin-bottom: 1;
+}
+
+/* ── Action Items ────────────────────────── */
+.action-urgent {
+	color: #ff1744;
+	text-style: bold;
+}
+
+.action-warning {
+	color: #ffab00;
+}
+
+.action-info {
+	color: #2979ff;
+}
+
+/* ── DataTable Enhancements ──────────────── */
+DataTable {
+	height: 1fr;
+}
+
+DataTable > .datatable--cursor {
+	background: $accent;
+}
+
+/* ── Modal Styling ───────────────────────── */
+ModalScreen {
+	align: center middle;
+}
+
+.modal-dialog {
+	width: 70;
+	max-height: 80%;
+	border: thick $primary;
+	background: $surface;
+	padding: 1 2;
+}
+
+.modal-title {
+	text-style: bold;
+	text-align: center;
+	width: 100%;
+	margin-bottom: 1;
+}
+
+/* ── Form Elements ───────────────────────── */
+.form-row {
+	height: auto;
+	margin-bottom: 1;
+}
+
+.form-label {
+	width: 20;
+	text-align: right;
+	padding-right: 1;
+}
+
+/* ── Placeholder Screen ──────────────────── */
+.placeholder-screen {
+	align: center middle;
+}
+
+.placeholder-title {
+	text-style: bold;
+	text-align: center;
+	width: 100%;
+}
+
+.placeholder-subtitle {
+	text-align: center;
+	color: $text-muted;
+	width: 100%;
+}

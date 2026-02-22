@@ -1,0 +1,54 @@
+/* Classification Screen Styles */
+
+#classify-content {
+	padding: 1;
+}
+
+#classify-header {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#classify-progress {
+	text-align: right;
+	width: 1fr;
+	color: $text-muted;
+}
+
+#txn-table {
+	height: 45%;
+	margin-bottom: 1;
+}
+
+#detail-panel {
+	height: 1fr;
+}
+
+#detail-info {
+	height: auto;
+	text-style: bold;
+	margin-bottom: 1;
+}
+
+#suggestion-text {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#manual-classify {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#learn-rule-check {
+	margin-bottom: 1;
+}
+
+#classify-buttons {
+	height: auto;
+	dock: bottom;
+}
+
+#classify-buttons Button {
+	margin-right: 1;
+}

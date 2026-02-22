@@ -1,0 +1,85 @@
+/* Bank Import Screen Styles */
+
+#import-content {
+	padding: 1;
+}
+
+#import-selectors {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#format-selector {
+	width: 50%;
+	height: auto;
+	padding-right: 1;
+}
+
+#account-selector {
+	width: 50%;
+	height: auto;
+}
+
+#import-file-row {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#file-input-container {
+	width: 70%;
+	height: auto;
+	padding-right: 1;
+}
+
+#bank-name-container {
+	width: 30%;
+	height: auto;
+}
+
+#account-name-row {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#account-name-container {
+	width: 50%;
+	height: auto;
+}
+
+#import-buttons {
+	height: auto;
+	margin-bottom: 1;
+}
+
+#import-buttons Button {
+	margin-right: 1;
+}
+
+#preview-section {
+	height: 1fr;
+	margin-bottom: 1;
+}
+
+#preview-title {
+	height: auto;
+	text-style: bold;
+	margin-bottom: 0;
+}
+
+#preview-table {
+	height: 1fr;
+	max-height: 14;
+}
+
+#progress-section {
+	height: auto;
+}
+
+#import-progress {
+	margin-bottom: 0;
+}
+
+#import-status {
+	height: auto;
+	text-style: bold;
+}
