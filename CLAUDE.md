@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Small business account and job management system built with Python 3.13+. This is an early-stage project with minimal implementation currently.
+Small business account and job management system for Australian sole traders, built with Python 3.13+. The backend is feature-complete with models, storage, bank imports, classification, workflows, reports, and document generation. 277 tests passing. Next phase: Textual TUI frontend.
 
 ## Development Commands
 
@@ -72,19 +72,35 @@ mkdocs gh-deploy
 ### Project Layout
 ```
 src/small_business/     # Main package source code
-  models/               # Phase 1: Pydantic models (Client, Quote, Job, Invoice, Account, Transaction)
+  models/               # Pydantic models (Client, Quote, Job, Invoice, Account, Transaction, etc.)
+  storage/              # In-memory StorageRegistry with JSONL/JSON disk persistence
+  bank/                 # Bank statement CSV import pipeline
+  classification/       # Rule-based transaction classification engine
+  reports/              # Financial reporting (Balance Sheet, P&L, BAS/GST) with typed models
+  documents/            # DOCX document generation via Jinja2 templates
+  workflows.py          # Entity lifecycle transitions (Quote→Job→Invoice)
+  init_business.py      # Business directory structure initialization
 docs/                   # MkDocs documentation
   notebooks/            # Jupyter notebooks for examples (executed in docs)
-  api_docs/            # API reference documentation
-  plans/               # Design documents for each phase
-tests/                  # pytest test suite
-  models/              # Tests for Pydantic models
+  api_docs/             # API reference documentation
+  plans/                # Design documents for each phase
+tests/                  # pytest test suite (277 tests)
+  models/               # Tests for Pydantic models
+  storage/              # Tests for StorageRegistry
+  bank/                 # Tests for bank import pipeline
+  classification/       # Tests for classification engine
+  reports/              # Tests for financial reports
+  documents/            # Tests for document generation
+  integration/          # End-to-end integration tests
 ```
 
 ### Key Technologies
 - **uv**: Package and dependency management (replaces pip/poetry)
-- **Pydantic**: Data validation and modeling (Phase 1 foundation)
-- **pytest**: Testing framework with code coverage
+- **Pydantic v2**: Data validation, modeling, and typed report return types
+- **pandas**: CSV/data manipulation for bank imports and report exports
+- **docxtpl**: DOCX template rendering via Jinja2
+- **PyYAML**: Chart of accounts and classification rule storage
+- **pytest**: Testing framework with code coverage (277 tests)
 - **MkDocs Material**: Documentation with mkdocs-jupyter for executable notebooks
 - **pre-commit**: Code quality enforcement with ruff and codespell
 
@@ -98,17 +114,44 @@ MkDocs is configured to execute Jupyter notebooks during build (via mkdocs-jupyt
 - Version is managed in `src/small_business/__init__.py` via hatchling
 - Pre-commit excludes `dev.py` and `docs/*.py` files from checks
 - Tests should have short docstrings describing what is being tested
+- Use relative dates in tests (`date.today() + timedelta(...)`) — never hardcode dates that will expire
 
-### Phase 1: Data Models (Current)
+### Data Models
 The project uses Pydantic models for all core entities. Key design patterns:
 
 - **Decimal for money**: All monetary values use `Decimal` for precision
 - **String IDs for relationships**: Simple string IDs (not nested objects) for serialization
 - **Computed fields**: Automatic calculations for totals, GST, financial year using `@computed_field`
+- **Date-driven status**: Quote, Job, Invoice statuses are computed from date fields, NOT stored
 - **Model validators**: Data integrity validation (e.g., balanced transactions, account hierarchy)
 - **Double-entry accounting**: Transaction model enforces debits = credits
 
 See `docs/plans/2025-11-15-phase1-datastructures-design.md` for complete architecture details.
+
+### Storage Layer
+`StorageRegistry` is the central data access layer (src/small_business/storage/registry.py). Key patterns:
+
+- **In-memory with disk persistence**: All data loaded at init, queries served from memory
+- **JSONL for append-only data**: Clients, transactions (compacted on load)
+- **Versioned JSON for entities**: Quotes, invoices, jobs stored as `{FY}/{type}/{ID}_v{N}.json`
+- **Financial year organized**: Data directories organized by Australian FY (July–June, e.g., `2025-26`)
+- **Full CRUD**: Clients, Quotes, Invoices, Jobs, Transactions, Settings, ChartOfAccounts, BankFormats
+- **Transaction operations**: delete, void (reversing entry), search, filter by date/account/amount
+- **Convenience methods**: `get_unclassified_transactions()`, `get_account_codes()`, `search_transactions()`
+
+### Workflow Service
+`src/small_business/workflows.py` orchestrates entity lifecycle transitions:
+
+- `accept_quote_to_job(quote_id, data_dir)` — validates SENT quote, creates linked Job
+- `complete_job_to_invoice(job_id, data_dir)` — validates COMPLETED job, creates Invoice from quote line items
+
+### Reports
+Report generators return typed Pydantic models (not dicts):
+- `generate_balance_sheet()` → `BalanceSheetReport`
+- `generate_profit_loss_report()` → `ProfitLossReport`
+- `generate_bas_report()` → `BASReport`
+
+Report models are in `src/small_business/reports/models.py` and exported from `reports/__init__.py`.
 
 ## API Design Principles
 

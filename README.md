@@ -1,6 +1,6 @@
 # small_business
 
-small bussiness acount and job management
+Small business accounting and job management system for Australian sole traders. Features double-entry accounting, bank statement imports with auto-classification, quote/job/invoice lifecycle management, financial reporting (Balance Sheet, P&L, BAS/GST), and DOCX document generation.
 
 ## Package Architecture
 
@@ -13,6 +13,7 @@ graph TB
     User --> Init[Initialize Business]
     User --> Import[Import Bank Statements]
     User --> Classify[Classify Transactions]
+    User --> Workflow[Quote / Job / Invoice]
     User --> Report[Generate Reports]
     User --> DocGen[Generate Documents]
 
@@ -41,6 +42,14 @@ graph TB
     %% Batch Classification
     Classify --> process_unclassified["process_unclassified_transactions()"]
     process_unclassified --> classify_and_review
+
+    %% Business Lifecycle Workflow
+    Workflow --> accept_quote["accept_quote_to_job()"]
+    accept_quote --> SaveQuote[Save accepted quote version]
+    accept_quote --> CreateJob[Create linked Job]
+    Workflow --> complete_job["complete_job_to_invoice()"]
+    complete_job --> CreateInvoice[Create Invoice from line items]
+    complete_job --> MarkInvoiced[Mark job as invoiced]
 
     %% Report Generation Workflow
     Report --> gen_balance["generate_balance_sheet()"]
@@ -73,7 +82,7 @@ graph TB
     classDef lowLevel fill:#ffccbc,stroke:#d84315,stroke-width:2px
 
     class User userClass
-    class init_business,import_bank_statement,classify_and_review,process_unclassified,gen_balance,gen_pl,gen_bas,gen_quote,gen_invoice highLevel
+    class init_business,import_bank_statement,classify_and_review,process_unclassified,accept_quote,complete_job,gen_balance,gen_pl,gen_bas,gen_quote,gen_invoice highLevel
     class parse_csv,convert_to_transaction,classify_transaction,apply_classification,learn_rule,calc_balance,render_quote,render_invoice midLevel
     class is_duplicate,find_best_match,match_pattern,save_rules,get_all_txn,get_client,get_settings lowLevel
 ```
@@ -86,81 +95,88 @@ small_business/                         # Root package
 ├── init_business.py                    # Business initialization
 │   └── → init_business()               # Create business directory structure
 │
+├── workflows.py                        # Entity lifecycle transitions
+│   ├── → accept_quote_to_job() ⭐      # Quote → Job (validates SENT, creates linked Job)
+│   └── → complete_job_to_invoice() ⭐   # Job → Invoice (validates COMPLETED, creates Invoice)
+│
 ├── models/                             # Data models (Pydantic)
 │   ├── ● Client                        # Customer/client entity
-│   ├── ● Quote                         # Sales quote/proposal
-│   ├── ● Invoice                       # Customer invoice
-│   ├── ● Job                           # Work tracking
+│   ├── ● Quote                         # Sales quote (status: draft/sent/accepted/rejected/expired)
+│   ├── ● Invoice                       # Customer invoice (status: draft/sent/paid/overdue/cancelled)
+│   ├── ● Job                           # Work tracking (status: scheduled/in_progress/completed/invoiced)
 │   ├── ● LineItem                      # Quote/invoice line items
 │   ├── ● Account                       # Chart of accounts entry
-│   ├── ● ChartOfAccounts               # Collection of accounts
+│   ├── ● ChartOfAccounts               # Collection of accounts (loads from YAML)
 │   ├── ● Transaction                   # Double-entry accounting transaction
 │   ├── ● JournalEntry                  # Individual debit/credit entry
 │   ├── ● Settings                      # Application configuration
-│   ├── ● BankFormat                    # Bank CSV format specification
-│   ├── ● QuoteStatus                   # Enum: draft, sent, accepted, rejected, expired
-│   ├── ● JobStatus                     # Enum: scheduled, in_progress, completed, invoiced
-│   ├── ● InvoiceStatus                 # Enum: draft, sent, paid, overdue, cancelled
-│   ├── ● AccountType                   # Enum: asset, liability, equity, income, expense
+│   ├── ● BankFormat / BankFormats      # Bank CSV format specifications
+│   ├── ● QuoteStatus, JobStatus, InvoiceStatus, AccountType  # Enums
 │   └── → generate_*_id()               # ID generation utilities
-│       → get_financial_year()          # Financial year calculation
+│       → get_financial_year()          # Financial year calculation (AU: Jul-Jun)
 │
 ├── bank/                               # Bank statement import
 │   ├── ● BankTransaction               # Single bank transaction
 │   ├── ● ImportedBankStatement         # Collection of bank transactions
 │   ├── → parse_csv()                   # Parse bank CSV file
 │   ├── → convert_to_transaction()      # Convert bank txn to accounting txn
-│   ├── → is_duplicate()                # Duplicate detection
+│   ├── → is_duplicate()                # Duplicate detection (field-based)
 │   └── → import_bank_statement() ⭐    # Full import workflow (HIGH-LEVEL)
 │
 ├── storage/                            # In-memory storage with disk persistence
-│   ├── ● StorageRegistry               # Main storage interface
-│   │   ├── → save_client()
-│   │   ├── → get_client()
-│   │   ├── → get_all_clients()
-│   │   ├── → save_quote()
-│   │   ├── → get_quote()
-│   │   ├── → get_quote_versions()
-│   │   ├── → get_all_quotes()
-│   │   ├── → save_invoice()
-│   │   ├── → get_invoice()
-│   │   ├── → get_invoice_versions()
-│   │   ├── → get_all_invoices()
-│   │   ├── → save_transaction()
-│   │   ├── → update_transaction()
-│   │   ├── → get_transaction()
-│   │   ├── → transaction_exists()
-│   │   ├── → get_all_transactions()
-│   │   ├── → save_settings()
-│   │   ├── → get_settings()
-│   │   └── → reload()
-│   └── → get_financial_year_dir()      # Path utilities
-│       → get_transaction_file_path()
+│   └── ● StorageRegistry               # Central data access layer
+│       │
+│       │  # Clients (JSONL, case-insensitive lookup)
+│       ├── → save_client(), get_client(), get_all_clients()
+│       │
+│       │  # Quotes (versioned JSON: {FY}/quotes/Q-*_v{N}.json)
+│       ├── → save_quote(), get_quote(), get_all_quotes(), get_quote_versions()
+│       │
+│       │  # Invoices (versioned JSON: {FY}/invoices/INV-*_v{N}.json)
+│       ├── → save_invoice(), get_invoice(), get_all_invoices(), get_invoice_versions()
+│       │
+│       │  # Jobs (versioned JSON: {FY}/jobs/JOB-*_v{N}.json)
+│       ├── → save_job(), get_job(), get_all_jobs(), get_job_versions(), update_job()
+│       │
+│       │  # Transactions (JSONL per financial year)
+│       ├── → save_transaction(), update_transaction(), get_transaction()
+│       ├── → get_all_transactions(financial_year, start_date, end_date)
+│       ├── → get_unclassified_transactions()      # Transactions with UNCLASSIFIED accounts
+│       ├── → get_transactions_by_account()         # Filter by account code + date range
+│       ├── → search_transactions()                 # Query, amount, account, date filtering
+│       ├── → delete_transaction()                  # Remove from storage
+│       ├── → void_transaction()                    # Create reversing entry
+│       │
+│       │  # Configuration
+│       ├── → save_settings(), get_settings()
+│       ├── → get_chart_of_accounts(), save_chart_of_accounts(), get_account_codes()
+│       ├── → get_bank_formats(), save_bank_formats()
+│       └── → reload()
 │
 ├── classification/                     # Transaction classification
 │   ├── ● ClassificationRule            # Pattern-based rule
-│   ├── ● RuleMatch                     # Match result
-│   ├── ● AcceptanceDecision            # Enum: accepted, rejected, manual, pending
+│   ├── ● RuleMatch                     # Match result with confidence
 │   ├── ● ClassificationResult          # Workflow result
-│   ├── → match_pattern()               # Match description against rule
-│   ├── → find_best_match()             # Find best matching rule
 │   ├── → classify_transaction()        # Classify single transaction
 │   ├── → classify_batch()              # Classify multiple transactions
 │   ├── → apply_classification()        # Apply rule to transaction
-│   ├── → learn_rule()                  # Learn rule from transaction
-│   ├── → save_rules()                  # Save rules to YAML
-│   ├── → load_rules()                  # Load rules from YAML
+│   ├── → learn_rule()                  # Learn rule from user classification
+│   ├── → save_rules() / load_rules()   # YAML persistence
 │   ├── → classify_and_review() ⭐      # Classify with user feedback (HIGH-LEVEL)
 │   ├── → process_unclassified_transactions() ⭐  # Batch classify and learn (HIGH-LEVEL)
 │   ├── → classify_and_save() ⭐        # Classify and persist (HIGH-LEVEL)
 │   └── → load_and_classify_unclassified() ⭐    # Load and classify batch (HIGH-LEVEL)
 │
 ├── reports/                            # Financial reporting
+│   ├── ● AccountBalance                # Typed model: account name + Decimal balance
+│   ├── ● BalanceSheetReport            # Typed model: assets/liabilities/equity
+│   ├── ● ProfitLossReport              # Typed model: income/expenses/net_profit
+│   ├── ● BASReport                     # Typed model: GST collected/paid/net
 │   ├── → calculate_account_balance()   # Get account balance as of date
 │   ├── → get_account_transactions()    # Get transactions for account
-│   ├── → generate_balance_sheet() ⭐   # Generate balance sheet report (HIGH-LEVEL)
-│   ├── → generate_profit_loss_report() ⭐  # Generate P&L report (HIGH-LEVEL)
-│   ├── → generate_bas_report() ⭐      # Generate GST/BAS report (HIGH-LEVEL)
+│   ├── → generate_balance_sheet() ⭐   # Returns BalanceSheetReport
+│   ├── → generate_profit_loss_report() ⭐  # Returns ProfitLossReport
+│   ├── → generate_bas_report() ⭐      # Returns BASReport
 │   ├── → export_balance_sheet_csv()    # Export balance sheet to CSV
 │   ├── → export_profit_loss_csv()      # Export P&L to CSV
 │   └── → export_bas_csv()              # Export BAS to CSV
@@ -200,9 +216,9 @@ graph LR
     ClassifiedTxn --> Storage
 
     Storage --> Reports[Report Generation]
-    Reports --> Balance[Balance Sheet]
-    Reports --> PL[Profit & Loss]
-    Reports --> BAS[BAS/GST Report]
+    Reports --> Balance[BalanceSheetReport]
+    Reports --> PL[ProfitLossReport]
+    Reports --> BAS[BASReport]
     Balance --> CSV_Out[CSV Export]
     PL --> CSV_Out
     BAS --> CSV_Out
@@ -219,6 +235,29 @@ graph LR
     class DupCheck,MatchRules decision
     class Storage,Rules storage
     class BankTxn,RawTxn,ClassifiedTxn output
+```
+
+### Business Lifecycle: Quote to Invoice
+
+```mermaid
+graph LR
+    Q[Create Quote] --> Send[Send to Client]
+    Send --> Accept["accept_quote_to_job()"]
+    Accept --> Job[Job Created<br/>SCHEDULED]
+    Job --> Start[Start Work<br/>IN_PROGRESS]
+    Start --> Complete[Complete Work<br/>COMPLETED]
+    Complete --> Invoice["complete_job_to_invoice()"]
+    Invoice --> Inv[Invoice Created<br/>SENT]
+    Inv --> Paid[Payment Received<br/>PAID]
+
+    %% Styling
+    classDef workflow fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    classDef entity fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    classDef action fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+
+    class Accept,Invoice workflow
+    class Q,Job,Inv entity
+    class Send,Start,Complete,Paid action
 ```
 
 ## Project Organization
