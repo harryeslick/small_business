@@ -8,7 +8,7 @@ from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Label, Static, TabbedContent, TabPane
 
-from small_business.models import Settings
+from small_business.core.models import Settings
 
 
 class SettingsScreen(Screen):
@@ -126,7 +126,7 @@ class SettingsScreen(Screen):
 		lines = [" Chart of Accounts:", ""]
 
 		# Group by account type
-		from small_business.models import AccountType
+		from small_business.core.models import AccountType
 
 		for acct_type in AccountType:
 			accounts = chart.get_accounts_by_type(acct_type)

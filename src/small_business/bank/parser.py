@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from small_business.bank.models import BankTransaction, ImportedBankStatement
-from small_business.models.config import BankFormat
+from small_business.core.models.config import BankFormat
 
 
 def parse_csv(

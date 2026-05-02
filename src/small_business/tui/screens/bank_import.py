@@ -21,7 +21,7 @@ from textual.widgets import (
 )
 
 from small_business.bank import import_bank_statement, parse_csv
-from small_business.models import BankFormat
+from small_business.core.models import BankFormat
 from small_business.tui.utils import format_currency, format_date_short
 
 

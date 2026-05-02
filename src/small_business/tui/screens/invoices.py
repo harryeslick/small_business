@@ -11,7 +11,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Button, DataTable, Footer, Header, Input, Label, Select, Static
 
-from small_business.models import Client, Invoice, InvoiceStatus, LineItem
+from small_business.core.models import Client, Invoice, InvoiceStatus, LineItem
 from small_business.tui.modals.confirm import ConfirmModal
 from small_business.tui.modals.line_item_editor import LineItemEditorModal
 from small_business.tui.utils import format_currency, format_date

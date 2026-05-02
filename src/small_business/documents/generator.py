@@ -4,8 +4,8 @@ from pathlib import Path
 
 from docxtpl import DocxTemplate
 
-from small_business.models import Invoice, Quote
-from small_business.storage import StorageRegistry
+from small_business.core.models import Invoice, Quote
+from small_business.core.storage import StorageRegistry
 
 from .templates import render_invoice_context, render_quote_context
 

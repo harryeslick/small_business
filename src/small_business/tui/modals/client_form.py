@@ -7,7 +7,7 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Static
 
-from small_business.models import Client
+from small_business.core.models import Client
 
 
 class ClientFormModal(ModalScreen[Client | None]):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from small_business.models import get_financial_year
+from small_business.core.models import get_financial_year
 
 
 def format_currency(amount: Decimal | None, show_sign: bool = False) -> str:

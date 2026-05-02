@@ -4,9 +4,9 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import AccountType, ChartOfAccounts, get_financial_year
+from small_business.core.models import AccountType, ChartOfAccounts, get_financial_year
 from small_business.reports.models import AccountBalance, ProfitLossReport
-from small_business.storage import StorageRegistry
+from small_business.core.storage import StorageRegistry
 
 
 def generate_profit_loss_report(

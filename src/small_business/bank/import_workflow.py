@@ -7,9 +7,9 @@ from small_business.bank.converter import convert_to_transaction
 from small_business.bank.duplicate import is_duplicate
 from small_business.bank.models import ImportedBankStatement
 from small_business.bank.parser import parse_csv
-from small_business.models import get_financial_year
-from small_business.models.config import BankFormat
-from small_business.storage import StorageRegistry
+from small_business.core.models import get_financial_year
+from small_business.core.models.config import BankFormat
+from small_business.core.storage import StorageRegistry
 
 
 def import_bank_statement(

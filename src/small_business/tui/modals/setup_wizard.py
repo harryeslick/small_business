@@ -11,7 +11,8 @@ from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Static
 
-from small_business.models import Settings
+from small_business.core.models import Settings
+from small_business.services import init_business, init_business_in_place
 
 
 class SetupWizardModal(ModalScreen[Path | None]):
@@ -143,11 +144,9 @@ class SetupWizardModal(ModalScreen[Path | None]):
 		try:
 			if self._init_dir:
 				# Initialize the given directory in place
-				created_path = _init_business_in_place(settings, self._init_dir)
+				created_path = init_business_in_place(settings, self._init_dir)
 			else:
 				# Legacy mode: create a subdirectory
-				from small_business.init_business import init_business
-
 				created_path = init_business(settings)
 			self.dismiss(created_path)
 		except FileExistsError:
@@ -156,33 +155,3 @@ class SetupWizardModal(ModalScreen[Path | None]):
 			)
 		except Exception as e:
 			self.query_one("#wizard-error", Static).update(f"Error: {e}")
-
-
-def _init_business_in_place(settings: Settings, path: Path) -> Path:
-	"""Initialize a business directly in the given directory (no subdirectory).
-
-	Creates the standard business directory structure inside `path`.
-	"""
-	path.mkdir(parents=True, exist_ok=True)
-
-	for subdir in (
-		"clients",
-		"quotes",
-		"invoices",
-		"jobs",
-		"transactions",
-		"receipts",
-		"reports",
-		"config",
-	):
-		(path / subdir).mkdir(exist_ok=True)
-
-	# Save settings
-	settings_path = path / "config" / "settings.json"
-	settings_path.write_text(settings.model_dump_json(indent=2))
-
-	# Copy default chart of accounts
-	default_coa = files("small_business.data").joinpath("default_chart_of_accounts.yaml")
-	shutil.copy(str(default_coa), path / "config" / "chart_of_accounts.yaml")
-
-	return path

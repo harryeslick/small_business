@@ -4,8 +4,8 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import Transaction, get_financial_year
-from small_business.storage import StorageRegistry
+from small_business.core.models import Transaction, get_financial_year
+from small_business.core.storage import StorageRegistry
 
 
 def calculate_account_balance(

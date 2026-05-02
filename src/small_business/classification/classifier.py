@@ -2,7 +2,7 @@
 
 from small_business.classification.matcher import find_best_match
 from small_business.classification.models import ClassificationRule, RuleMatch
-from small_business.models.transaction import Transaction
+from small_business.core.models.transaction import Transaction
 
 
 def classify_transaction(

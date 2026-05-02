@@ -1,7 +1,7 @@
 """Apply classification rules to transactions."""
 
 from small_business.classification.models import RuleMatch
-from small_business.models.transaction import JournalEntry, Transaction
+from small_business.core.models.transaction import JournalEntry, Transaction
 
 
 def apply_classification(

@@ -8,7 +8,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Input, Static
 
-from small_business.models import Transaction
+from small_business.core.models import Transaction
 from small_business.tui.modals.confirm import ConfirmModal
 from small_business.tui.utils import format_currency, format_date_short
 

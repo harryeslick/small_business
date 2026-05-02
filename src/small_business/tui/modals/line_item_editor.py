@@ -9,7 +9,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Checkbox, Input, Label, Static
 
-from small_business.models import LineItem
+from small_business.core.models import LineItem
 
 
 class LineItemEditorModal(ModalScreen[list[LineItem] | None]):

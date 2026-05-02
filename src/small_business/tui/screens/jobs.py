@@ -10,10 +10,10 @@ from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
-from small_business.models import Job, JobStatus
+from small_business.core.models import Job, JobStatus
 from small_business.tui.modals.confirm import ConfirmModal
 from small_business.tui.utils import format_date
-from small_business.workflows import complete_job_to_invoice
+from small_business.services import complete_job_to_invoice
 
 
 class JobsScreen(Screen):

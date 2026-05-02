@@ -9,7 +9,7 @@ from small_business.classification.classifier import classify_transaction
 from small_business.classification.learner import learn_rule
 from small_business.classification.models import ClassificationRule, RuleMatch
 from small_business.classification.rule_store import save_rules
-from small_business.models.transaction import Transaction
+from small_business.core.models.transaction import Transaction
 
 
 class AcceptanceDecision(str, Enum):

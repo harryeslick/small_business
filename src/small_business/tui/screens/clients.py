@@ -8,7 +8,7 @@ from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
-from small_business.models import Client
+from small_business.core.models import Client
 from small_business.tui.modals.client_form import ClientFormModal
 
 

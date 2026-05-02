@@ -4,7 +4,7 @@ import datetime
 from decimal import Decimal
 
 from small_business.bank.models import BankTransaction
-from small_business.models.transaction import JournalEntry, Transaction
+from small_business.core.models.transaction import JournalEntry, Transaction
 
 
 def convert_to_transaction(

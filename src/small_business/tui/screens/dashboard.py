@@ -11,7 +11,7 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
-from small_business.models import InvoiceStatus, QuoteStatus
+from small_business.core.models import InvoiceStatus, QuoteStatus
 from small_business.tui.utils import (
 	current_financial_year,
 	days_until,

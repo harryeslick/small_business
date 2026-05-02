@@ -3,7 +3,7 @@
 from datetime import date
 from pathlib import Path
 
-from small_business.models.utils import get_financial_year
+from small_business.core.models.utils import get_financial_year
 
 
 def get_financial_year_dir(base_path: Path, txn_date: date) -> Path:

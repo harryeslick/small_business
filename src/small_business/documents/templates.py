@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from small_business.models import Client, Invoice, Quote, Settings
+from small_business.core.models import Client, Invoice, Quote, Settings
 
 
 def format_currency(amount: Decimal) -> str:

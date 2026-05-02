@@ -3,7 +3,7 @@
 import re
 
 from small_business.classification.models import ClassificationRule
-from small_business.models.transaction import Transaction
+from small_business.core.models.transaction import Transaction
 
 
 def learn_rule(

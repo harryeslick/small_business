@@ -23,7 +23,7 @@ from small_business.classification import (
 	save_rules,
 )
 from small_business.classification.classifier import classify_transaction
-from small_business.models import Transaction
+from small_business.core.models import Transaction
 from small_business.tui.utils import format_currency, format_date_short
 from small_business.tui.widgets.account_selector import AccountSelector
 

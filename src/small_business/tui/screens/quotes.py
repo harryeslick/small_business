@@ -10,11 +10,11 @@ from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Input, Select, Static
 
-from small_business.models import LineItem, Quote, QuoteStatus
+from small_business.core.models import LineItem, Quote, QuoteStatus
 from small_business.tui.modals.confirm import ConfirmModal
 from small_business.tui.modals.line_item_editor import LineItemEditorModal
 from small_business.tui.utils import format_currency, format_date
-from small_business.workflows import accept_quote_to_job
+from small_business.services import accept_quote_to_job
 
 
 class QuotesScreen(Screen):

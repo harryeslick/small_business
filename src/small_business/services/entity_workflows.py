@@ -11,8 +11,15 @@ validates preconditions, and persists the results.
 from datetime import date, timedelta
 from pathlib import Path
 
-from small_business.models import Invoice, Job, LineItem, Quote, QuoteStatus, JobStatus
-from small_business.storage.registry import StorageRegistry
+from small_business.core.models import (
+	Invoice,
+	Job,
+	JobStatus,
+	LineItem,
+	Quote,
+	QuoteStatus,
+)
+from small_business.core.storage.registry import StorageRegistry
 
 
 def _get_latest_quote(storage: StorageRegistry, quote_id: str) -> Quote:

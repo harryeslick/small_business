@@ -8,7 +8,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from small_business.models import (
+from small_business.core.models import (
 	BankFormats,
 	ChartOfAccounts,
 	Client,
@@ -19,7 +19,7 @@ from small_business.models import (
 	Transaction,
 	get_financial_year,
 )
-from small_business.storage.paths import get_financial_year_dir
+from small_business.core.storage.paths import get_financial_year_dir
 
 
 class StorageRegistry:
@@ -740,7 +740,7 @@ class StorageRegistry:
 		Raises:
 			KeyError: If transaction not found
 		"""
-		from small_business.models import JournalEntry as JE
+		from small_business.core.models import JournalEntry as JE
 
 		original = self.get_transaction(transaction_id, transaction_date)
 

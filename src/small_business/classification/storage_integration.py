@@ -9,8 +9,8 @@ from small_business.classification.workflow import (
 	classify_and_review,
 	process_unclassified_transactions,
 )
-from small_business.models.transaction import Transaction
-from small_business.storage import StorageRegistry
+from small_business.core.models.transaction import Transaction
+from small_business.core.storage import StorageRegistry
 
 
 def classify_and_save(
@@ -84,7 +84,7 @@ def load_and_classify_unclassified(
 	storage = StorageRegistry(data_dir)
 
 	# Load all transactions for the financial year
-	from small_business.models import get_financial_year
+	from small_business.core.models import get_financial_year
 
 	financial_year = get_financial_year(txn_date)
 	all_txns = storage.get_all_transactions(financial_year=financial_year)

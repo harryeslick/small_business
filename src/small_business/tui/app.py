@@ -8,8 +8,8 @@ from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
 
-from small_business.models import InvoiceStatus
-from small_business.storage.registry import StorageRegistry
+from small_business.core.models import InvoiceStatus
+from small_business.core.storage.registry import StorageRegistry
 from small_business.tui.commands import ActionProvider, EntityProvider, NavigationProvider
 from small_business.tui.screens.bank_import import BankImportScreen
 from small_business.tui.screens.classification import ClassificationScreen
